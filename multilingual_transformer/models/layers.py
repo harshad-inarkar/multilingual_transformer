@@ -81,7 +81,7 @@ class EncoderLayer(nn.Module):
         return self.norm2(x + self.drop(self.ffn(x)))
 
 
-cclass DecoderLayer(nn.Module):
+class DecoderLayer(nn.Module):
     def __init__(self, d_model: int, num_heads: int, d_ff: int, dropout: float, activation: str = "swiglu") -> None:
         super().__init__()
         self.self_attn = MultiHeadAttention(d_model, num_heads)
