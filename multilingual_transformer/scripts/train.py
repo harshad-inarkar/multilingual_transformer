@@ -29,7 +29,7 @@ def print_stats_table(
     print(f"Tokenizers Used   : SRC = {config.tokenizer.algo_src.upper()} | TGT = {config.tokenizer.algo_tgt.upper()}")
     print(f"Vocab Sizes       : SRC = {src_vocab_sz:,} | TGT = {tgt_vocab_sz:,}")
     print(f"Model Parameters  : {n_params:,} ({n_params * 4 / 1024**2:.1f} MB fp32)")
-    print(f"Transformer Arch  : d_model {config.model.d_model} / num_layers {config.model.num_layers}/ d_ff {config.model.d_ff}")
+    print(f"Transformer Arch  : d_model {config.model.d_model} / num_layers {config.model.num_layers} / d_ff {config.model.d_ff} / {config.model.activation.upper()}")    
     print("-" * 70)
     print(f"Epochs            : {config.training.epochs}")
     print(f"Train/Val/Test    : {config.data.train_size:,} / {config.data.val_size:,} / {config.data.test_size:,}")

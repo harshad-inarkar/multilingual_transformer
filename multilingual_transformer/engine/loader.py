@@ -37,6 +37,7 @@ def build_model(cfg: AppConfig, tok_src: Any, tok_tgt: Any) -> MultilingualTrans
         num_heads=cfg.model.num_heads,
         d_ff=cfg.model.d_ff,
         dropout=cfg.model.dropout,
+        activation=cfg.model.activation,
     )
 
 

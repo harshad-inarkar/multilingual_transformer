@@ -1,5 +1,95 @@
 
 
+
+==================================================
+          INITIALIZING TRAINING PIPELINE
+==================================================
+Dataset Name : ai4bharat/samanantar
+Language     : Hindi (hi)
+Epochs       : 10
+Train Size   : 100000
+Val Size     : 10000
+Test Size    : 10000
+Save Best    : True
+GPUs Active  : 2
+==================================================
+
+Loading cached dataset splits from processed_data...
+Training tokenizers...
+[00:00:00] Tokenize words                 ██████████████████ 59879    /    59879[00:00:00] Tokenize words                 ██████████████████ 0        /        0
+[00:00:00] Count pairs                    ██████████████████ 59879    /    59879
+[00:00:00] Compute merges                 ██████████████████ 15893    /    15893
+[00:00:00] Suffix array seeds             ██████████████████ 91913    /    91913[00:00:00] Suffix array seeds             ██████████████████ 0        /        0
+[00:00:11] EM training                    ██████████████████ 14       /       14
+Epoch  1/10 | Time: 0m 25s | Train Loss: 7.6194 | Val Loss: 5.8863              
+Epoch  2/10 | Time: 0m 25s | Train Loss: 5.6794 | Val Loss: 4.8391              
+Epoch  3/10 | Time: 0m 24s | Train Loss: 5.0327 | Val Loss: 4.4187              
+Epoch  4/10 | Time: 0m 24s | Train Loss: 4.6635 | Val Loss: 4.1703              
+Epoch  5/10 | Time: 0m 24s | Train Loss: 4.4051 | Val Loss: 4.0166              
+Epoch  6/10 | Time: 0m 24s | Train Loss: 4.2090 | Val Loss: 3.9227              
+Epoch  7/10 | Time: 0m 24s | Train Loss: 4.0668 | Val Loss: 3.8779              
+Epoch  8/10 | Time: 0m 24s | Train Loss: 3.9686 | Val Loss: 3.8546              
+Epoch  9/10 | Time: 0m 24s | Train Loss: 3.9047 | Val Loss: 3.8477              
+Epoch 10/10 | Time: 0m 24s | Train Loss: 3.8824 | Val Loss: 3.8465              
+
+======================================================================
+                    SAVED CHECKPOINTS
+======================================================================
+Best (lowest val)  : epoch 10/10 | Train 3.8824 | Val 3.8465 | checkpoints/transformer_en_hi_best.pt
+Final (last epoch) : epoch 10/10 | Train 3.8824 | Val 3.8465 | checkpoints/transformer_en_hi_last.pt
+======================================================================
+                                                                                
+======================================================================
+              CONSOLIDATED FINAL STATISTICS
+======================================================================
+Target Language   : Hindi (hi)
+Dataset Source    : ai4bharat/samanantar
+Tokenizers Used   : SRC = WORDPIECE | TGT = UNIGRAM
+Vocab Sizes       : SRC = 16,000 | TGT = 16,000
+Model Parameters  : 20,176,896 (77.0 MB fp32)
+Transformer Arch  : d_model 256 / num_layers 4/ d_ff 768
+----------------------------------------------------------------------
+Epochs            : 10
+Train/Val/Test    : 100,000 / 10,000 / 10,000
+BlEU Samples      : 1000
+Batch Size        : 256 (Train) | 256 (Eval)
+Steps per Epoch   : 196
+Total Train Time  : 4.18 minutes
+Peak GPU          : 8.06 GB
+Peak Reserved GPU : 13.83 GB
+----------------------------------------------------------------------
+Greedy Decoding   -> BLEU:  6.20 | CHRF: 24.25
+Beam Decoding     -> BLEU:  7.41 | CHRF: 26.45
+======================================================================
+
+
+BLEU signature: nrefs:1|case:lc|eff:no|tok:intl|smooth:exp|version:2.6.0
+chrF signature: nrefs:1|case:lc|eff:yes|nc:6|nw:0|space:no|version:2.6.0
+=======================================================
+
+=== Config Sample Translations (EN-HI) ===
+[1] EN   : farmer is important to the country
+    Greedy : किसान देश के लिए महत्वपूर्ण है
+    Beam   : किसान देश के लिए जरूरी है
+
+[2] EN   : education is essential for every child
+    Greedy : हर बच्चे के लिए शिक्षा के लिए हर संभव है
+    Beam   : शिक्षा के लिए हर बच्चे की शिक्षा है
+
+[3] EN   : they are going to school
+    Greedy : वे स्कूल में रहे हैं
+    Beam   : वे स्कूल के लिए जा रहे हैं।
+
+[4] EN   : She is smart girl
+    Greedy : वह लड़की हैं।
+    Beam   : वह एक लड़की है।
+
+[5] EN   : he is a great teacher
+    Greedy : वह एक महान शिक्षक हैं
+    Beam   : वह एक महान शिक्षक हैं।
+
+---
+
 /kaggle/working/multilingual_transformer/work_dir
 
 ==================================================

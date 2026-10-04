@@ -85,6 +85,13 @@ class ModelConfig:
     num_heads: int = 8
     d_ff: int = 2048
     dropout: float = 0.1
+    activation: str = "swiglu"  # Default to SwiGLU if not specified in TOML
+
+    def __post_init__(self) -> None:
+        self.activation = self.activation.lower()
+        valid = {"swiglu", "relu", "relusquared", "silu", "gelu"}
+        if self.activation not in valid:
+            raise ValueError(f"model.activation must be one of {valid}")
 
 
 @dataclass

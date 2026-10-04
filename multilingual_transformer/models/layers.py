@@ -37,25 +37,41 @@ class TokenEmbedding(nn.Module):
 
 
 class FeedForward(nn.Module):
-    def __init__(self, d_model: int, d_ff: int) -> None:
+    def __init__(self, d_model: int, d_ff: int, activation: str = "swiglu") -> None:
         super().__init__()
-        # Project to 2 * d_ff to create both the gate and the value simultaneously
-        self.fc1 = nn.Linear(d_model, d_ff * 2)
+        self.activation_type = activation
+        
+        # Gated variants (like SwiGLU) project to 2 * d_ff to create gate + value
+        if self.activation_type == "swiglu":
+            self.fc1 = nn.Linear(d_model, d_ff * 2)
+        else:
+            self.fc1 = nn.Linear(d_model, d_ff)
+            
         self.fc2 = nn.Linear(d_ff, d_model)
 
     def forward(self, x: Tensor) -> Tensor:
-        # Split the projection in half along the last dimension
-        gate, value = self.fc1(x).chunk(2, dim=-1)
-        
-        # SwiGLU: SiLU(gate) * value
-        return self.fc2(F.silu(gate) * value)
+        if self.activation_type == "swiglu":
+            gate, value = self.fc1(x).chunk(2, dim=-1)
+            return self.fc2(F.silu(gate) * value)
+            
+        elif self.activation_type == "relu":
+            return self.fc2(F.relu(self.fc1(x)))
+            
+        elif self.activation_type == "relusquared":
+            return self.fc2(torch.pow(F.relu(self.fc1(x)), 2))
+            
+        elif self.activation_type == "silu":
+            return self.fc2(F.silu(self.fc1(x)))
+            
+        elif self.activation_type == "gelu":
+            return self.fc2(F.gelu(self.fc1(x)))
 
 
 class EncoderLayer(nn.Module):
-    def __init__(self, d_model: int, num_heads: int, d_ff: int, dropout: float) -> None:
+    def __init__(self, d_model: int, num_heads: int, d_ff: int, dropout: float, activation: str = "swiglu") -> None:
         super().__init__()
         self.self_attn = MultiHeadAttention(d_model, num_heads)
-        self.ffn = FeedForward(d_model, d_ff)
+        self.ffn = FeedForward(d_model, d_ff, activation=activation) # Passed here
         self.norm1 = nn.LayerNorm(d_model)
         self.norm2 = nn.LayerNorm(d_model)
         self.drop = nn.Dropout(dropout)
@@ -65,12 +81,12 @@ class EncoderLayer(nn.Module):
         return self.norm2(x + self.drop(self.ffn(x)))
 
 
-class DecoderLayer(nn.Module):
-    def __init__(self, d_model: int, num_heads: int, d_ff: int, dropout: float) -> None:
+cclass DecoderLayer(nn.Module):
+    def __init__(self, d_model: int, num_heads: int, d_ff: int, dropout: float, activation: str = "swiglu") -> None:
         super().__init__()
         self.self_attn = MultiHeadAttention(d_model, num_heads)
         self.cross_attn = MultiHeadAttention(d_model, num_heads)
-        self.ffn = FeedForward(d_model, d_ff)
+        self.ffn = FeedForward(d_model, d_ff, activation=activation) # Passed here
         self.norm1 = nn.LayerNorm(d_model)
         self.norm2 = nn.LayerNorm(d_model)
         self.norm3 = nn.LayerNorm(d_model)

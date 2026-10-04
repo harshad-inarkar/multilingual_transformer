@@ -29,7 +29,7 @@ def print_multilingual_stats_table(
     print(f"Tokenizers Used   : Shared Vocabulary ({cfg.tokenizer.algo_tgt.upper()})")
     print(f"Shared Vocab Size : {vocab_sz:,}")
     print(f"Model Parameters  : {n_params:,} ({n_params * 4 / 1024**2:.1f} MB fp32)")
-    print(f"Transformer Arch  : d_model {cfg.model.d_model} / num_layers {cfg.model.num_layers}/ d_ff {cfg.model.d_ff}")
+    print(f"Transformer Arch  : d_model {cfg.model.d_model} / num_layers {cfg.model.num_layers} / d_ff {cfg.model.d_ff} / {cfg.model.activation.upper()}")    
     print("-" * 70)
     print(f"Epochs            : {cfg.training.epochs}")
     print(f"BlEU Samples      : {cfg.training.bleu_sample} (per pair)")
@@ -133,6 +133,7 @@ def multilingual_worker(rank: int, world_size: int, config_path: str) -> None:
         src_vocab_size=vocab_sz, tgt_vocab_size=vocab_sz, max_len=cfg.data.max_len,
         d_model=cfg.model.d_model, num_layers=cfg.model.num_layers,
         num_heads=cfg.model.num_heads, d_ff=cfg.model.d_ff, dropout=cfg.model.dropout,
+        activation=cfg.model.activation,
     )
     n_params = sum(p.numel() for p in model.parameters())
 

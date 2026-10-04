@@ -1,3 +1,91 @@
+
+==================================================
+      INITIALIZING MULTILINGUAL PIPELINE
+==================================================
+Base Pairs   : ['en-hi', 'en-mr', 'en-sa']
+Gen. Tokens  : ['<2en>', '<2hi>', '<2mr>', '<2sa>']
+Tokenizers   : Shared UNIGRAM (Vocab: 24000)
+Epochs       : 10
+Save Best    : True
+GPUs Active  : 2
+==================================================
+
+Loading cached multilingual corpus from multi_corpus_hi_mr_sa_50000_5000_5000_s42_l96_r5.0.pkl...
+Training shared multilingual tokenizer...
+[00:00:00] Suffix array seeds             ██████████████████ 249647   /   249647[00:00:00] Suffix array seeds             ██████████████████ 0        /        0
+[00:00:49] EM training                    ██████████████████ 20       /       20
+Epoch  1/10 | Time: 1m 08s | Train Loss: 7.3000 | Val Loss: 5.4843              
+Epoch  2/10 | Time: 1m 10s | Train Loss: 5.4534 | Val Loss: 4.6118              
+Epoch  3/10 | Time: 1m 10s | Train Loss: 4.8747 | Val Loss: 4.2151              
+Epoch  4/10 | Time: 1m 09s | Train Loss: 4.5344 | Val Loss: 4.0157              
+Epoch  5/10 | Time: 1m 10s | Train Loss: 4.3061 | Val Loss: 3.8780              
+Epoch  6/10 | Time: 1m 10s | Train Loss: 4.1374 | Val Loss: 3.8056              
+Epoch  7/10 | Time: 1m 10s | Train Loss: 4.0091 | Val Loss: 3.7642              
+Epoch  8/10 | Time: 1m 10s | Train Loss: 3.9161 | Val Loss: 3.7426              
+Epoch  9/10 | Time: 1m 10s | Train Loss: 3.8572 | Val Loss: 3.7365              
+Epoch 10/10 | Time: 1m 10s | Train Loss: 3.8304 | Val Loss: 3.7368              
+                                                                                
+======================================================================
+              CONSOLIDATED MULTILINGUAL STATISTICS
+======================================================================
+Dataset Strategy  : Bidirectional Augmentation with Target Prefixes
+Tokenizers Used   : Shared Vocabulary (UNIGRAM)
+Shared Vocab Size : 24,000
+Model Parameters  : 26,320,896 (100.4 MB fp32)
+Transformer Arch  : d_model 256 / num_layers 4/ d_ff 768
+----------------------------------------------------------------------
+Epochs            : 10
+BlEU Samples      : 1000 (per pair)
+Steps per Epoch   : 521
+Total Train Time  : 11.81 minutes
+Peak GPU Memory   : 14.80 GB Reserved / 10.50 GB Allocated
+----------------------------------------------------------------------
+Final Target Benchmarks (Beam Decoding):
+  EN-HI   -> BLEU:  5.46 | CHRF: 24.34
+  HI-EN   -> BLEU:  6.87 | CHRF: 27.21
+  EN-MR   -> BLEU:  5.05 | CHRF: 26.27
+  MR-EN   -> BLEU:  9.76 | CHRF: 30.40
+  EN-SA   -> BLEU:  8.17 | CHRF: 24.72
+  SA-EN   -> BLEU: 15.37 | CHRF: 32.54
+======================================================================
+
+
+BLEU signature: nrefs:1|case:lc|eff:no|tok:intl|smooth:exp|version:2.6.0
+chrF signature: nrefs:1|case:lc|eff:yes|nc:6|nw:0|space:no|version:2.6.0
+
+=== Config Sample Translations (multilingual) ===
+--- -> HI ---
+[1] SRC  : farmer is important to the country
+    Greedy : देश के किसानों को लेकर है।
+    Beam   : देश के किसानों को महत्वपूर्ण है।
+
+--- -> MR ---
+[2] SRC  : farmer is important to the country
+    Greedy : देशातील शेतकऱ्यांची –
+    Beam   : शेतकरी देशासाठी महत्वाचे आहे
+
+--- -> SA ---
+[3] SRC  : farmer is important to the country
+    Greedy : कृषकः देशम् अस्ति ।
+    Beam   : कृषकः देशम् अस्ति ।
+
+--- -> HI ---
+[4] SRC  : education is essential for every child
+    Greedy : बच्चे के लिए सभी शिक्षा की आवश्यकता है
+    Beam   : बच्चे के लिए हर बच्चे की आवश्यकता है
+
+--- -> MR ---
+[5] SRC  : education is essential for every child
+    Greedy : प्रत्येक शिक्षणासाठी आवश्यक आहे
+    Beam   : मुलांच्या शिक्षणासाठी प्रत्येक शिक्षणासाठी आवश्यक आहे
+
+--- -> SA ---
+[6] SRC  : education is essential for every child
+    Greedy : बालकः बालकः बालकः ।
+    Beam   : """अभावाय, बालकाः शिक्षायाः आवश्यकता अस्ति ।""
+
+----
+
 ==================================================
       INITIALIZING MULTILINGUAL PIPELINE
 ==================================================
