@@ -167,6 +167,7 @@ num_layers = 4
 num_heads = 4
 d_ff = 768    # 3x d_model for optimal SwiGLU parameter density
 dropout = 0.1
+activation = "swiglu"  # Options: "swiglu", "relu", "relusquared", "silu", "gelu"
 
 [training]
 epochs = 10
