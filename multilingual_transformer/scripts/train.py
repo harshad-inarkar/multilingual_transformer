@@ -80,13 +80,13 @@ def train_worker(rank: int, world_size: int, config_path: str) -> None:
     sizes = (cfg.data.train_size, cfg.data.val_size, cfg.data.test_size)
 
     if is_main:
-        tr_src, tr_tgt, val_src, val_tgt, te_src, te_tgt = pipeline.acquire_corpus(*sizes, cfg.data.force_download)
+        tr_src, tr_tgt, val_src, val_tgt, te_src, te_tgt = pipeline.acquire_corpus(*sizes, cfg.data.force_download,verbose=True)
         print("Training tokenizers...")
         tok_src, tok_tgt = fit_tokenizers(cfg, tr_src, tr_tgt)
     barrier()
 
     if not is_main:
-        tr_src, tr_tgt, val_src, val_tgt, te_src, te_tgt = pipeline.acquire_corpus(*sizes, False)
+        tr_src, tr_tgt, val_src, val_tgt, te_src, te_tgt = pipeline.acquire_corpus(*sizes, False,verbose=False)
         tok_src, tok_tgt = load_tokenizers(cfg)
 
     tr_ds = TranslationDataset(tr_src, tr_tgt, tok_src, tok_tgt, cfg.data.max_len)

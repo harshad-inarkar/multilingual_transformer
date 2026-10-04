@@ -125,12 +125,19 @@ class DataPipeline:
         return str(rec.get(self.src_lang, "")).strip(), str(rec.get(self.tgt_lang, "")).strip()
 
     def acquire_corpus(
-        self, train_size: int, val_size: int, test_size: int, force_download: bool = False
+        self, train_size: int, 
+        val_size: int, 
+        test_size: int, 
+        force_download: bool = False,
+        verbose: bool = False,
+
     ) -> tuple[list[str], list[str], list[str], list[str], list[str], list[str]]:
         sizes = {"train": train_size, "val": val_size, "test": test_size}
         paths = self._cache_paths(sizes)
         if not force_download and all(p.exists() for p in paths.values()):
-            print(f"Loading cached dataset splits from {self.data_dir}...")
+            if verbose:
+                print(f"Loading cached dataset splits from {self.data_dir}...")
+                
             out: list[list[str]] = []
             for p in paths.values():
                 out.extend(self._load_jsonl(p))
