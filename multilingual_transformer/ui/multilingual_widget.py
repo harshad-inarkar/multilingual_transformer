@@ -34,24 +34,42 @@ class MultilingualTranslationWidget:
         def on_click(_: widgets.Button) -> None:
             out.clear_output()
             with out:
-                if src_dropdown.value == tgt_dropdown.value:
+                src_lang = src_dropdown.value.lower()
+                tgt_lang = tgt_dropdown.value.lower()
+                text = text_box.value
+                
+                if src_lang == tgt_lang:
                     print("Source and Target languages must be different.")
                     return
                 
-                tgt_lang = tgt_dropdown.value.lower()
+                # --- PIVOT TRANSLATION LOGIC ---
+                if src_lang != "en" and tgt_lang != "en":
+                    print("--- Pivoting through English ---")
+                    en_prefix = self.token_fmt.format("en")
+                    pivot_input = f"{en_prefix} {text}"
+                    
+                    if method_dropdown.value == "greedy":
+                        pivot_text = self.generator.greedy_decode(pivot_input)
+                    else:
+                        pivot_text = self.generator.batched_beam_decode([pivot_input], beam_size=5)[0]
+                        
+                    print(f"[{src_lang.upper()}] : {text}")
+                    print(f"[EN (Pivot)] : {pivot_text}")
+                    text_to_translate = pivot_text
+                else:
+                    text_to_translate = text
+                    print(f"[{src_lang.upper()}] : {text}")
+
+                # --- FINAL TRANSLATION LOGIC ---
                 tgt_prefix = self.token_fmt.format(tgt_lang)
-                text = text_box.value
-                
-                # 1. Add tag to the text (For the Encoder)
-                prefixed_text = f"{tgt_prefix} {text}"
+                final_input = f"{tgt_prefix} {text_to_translate}"
                 
                 if method_dropdown.value == "greedy":
-                    res = self.generator.greedy_decode(prefixed_text, tgt_prefix_token=tgt_prefix)
+                    res = self.generator.greedy_decode(final_input)
                 else:
-                    res = self.generator.batched_beam_decode([prefixed_text], beam_size=5, tgt_prefix_token=tgt_prefix)[0]
+                    res = self.generator.batched_beam_decode([final_input], beam_size=5)[0]
                     
-                print(f"[{src_dropdown.value.upper()}] : {text}")
-                print(f"[{tgt_dropdown.value.upper()}] : {res}")
+                print(f"[{tgt_lang.upper()}] : {res}")
 
         translate_btn.on_click(on_click)
         

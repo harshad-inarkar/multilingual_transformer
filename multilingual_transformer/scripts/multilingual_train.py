@@ -158,11 +158,10 @@ def multilingual_worker(rank: int, world_size: int, config_path: str) -> None:
     for pair_key in eval_directions:
         split = corpus["eval_splits"].get(pair_key)
         if split:
-            tgt_prefix = split.get("tgt_prefix")
             bleu, chrf, _ = evaluator.evaluate(
                 split["test_src"], split["test_tgt"], method="beam", beam_size=5,
                 batch_size=cfg.training.gen_batch_size, sample_size=cfg.training.bleu_sample,
-                rank=rank, world_size=world_size, tgt_prefix_token=tgt_prefix
+                rank=rank, world_size=world_size
             )
             results[pair_key] = (bleu, chrf)
 

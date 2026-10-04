@@ -39,7 +39,6 @@ class TranslationEvaluator:
         sample_size: int = 500,
         rank: int = 0,
         world_size: int = 1,
-        tgt_prefix_token: str | None = None,
     ) -> tuple[float, float, list[dict[str, str]]]:
         n = min(sample_size, len(sources))
         src_subset, ref_subset = sources[:n], references[:n]
@@ -48,13 +47,9 @@ class TranslationEvaluator:
         shard_indices = list(range(rank, len(src_subset), world_size))
 
         if method == "beam":
-            shard_preds = self.generator.batched_beam_decode(
-                shard_src, beam_size=beam_size, batch_size=batch_size, tgt_prefix_token=tgt_prefix_token
-            )
+            shard_preds = self.generator.batched_beam_decode(shard_src, beam_size=beam_size, batch_size=batch_size)
         else:
-            shard_preds = self.generator.batched_greedy_decode(
-                shard_src, batch_size=batch_size, tgt_prefix_token=tgt_prefix_token
-            )
+            shard_preds = self.generator.batched_greedy_decode(shard_src, batch_size=batch_size)
 
         gathered_data = gather_all(list(zip(shard_indices, shard_preds)), world_size)
         

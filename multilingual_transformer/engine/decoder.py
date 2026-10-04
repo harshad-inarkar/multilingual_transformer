@@ -76,11 +76,11 @@ class TranslationGenerator:
         return logits[:, -1, :].float()
 
     @torch.inference_mode()
-    def greedy_decode(self, sentence: str, tgt_prefix_token: str | None = None) -> str:
-        return self.batched_greedy_decode([sentence], batch_size=1, tgt_prefix_token=tgt_prefix_token)[0]
+    def greedy_decode(self, sentence: str) -> str:
+        return self.batched_greedy_decode([sentence], batch_size=1)[0]
 
     @torch.inference_mode()
-    def batched_greedy_decode(self, sentences: list[str], batch_size: int = 128, tgt_prefix_token: str | None = None) -> list[str]:
+    def batched_greedy_decode(self, sentences: list[str], batch_size: int = 128) -> list[str]:
         results = [""] * len(sentences)
         for idx, src, src_mask in self._progress(
             self._batches(sentences, batch_size), len(sentences), batch_size, "Greedy decode"
@@ -88,12 +88,7 @@ class TranslationGenerator:
             with self._autocast():
                 enc_out = self.model.encoder(src, src_mask)
 
-            if tgt_prefix_token:
-                prefix_id = self.tgt_tok.token_to_id(tgt_prefix_token)
-                tgt = torch.tensor([[self.sos_tgt, prefix_id]], dtype=torch.long, device=self.device).repeat(len(idx), 1)
-            else:
-                tgt = torch.full((len(idx), 1), self.sos_tgt, dtype=torch.long, device=self.device)
-
+            tgt = torch.full((len(idx), 1), self.sos_tgt, dtype=torch.long, device=self.device)
             unfinished = torch.ones(len(idx), dtype=torch.bool, device=self.device)
             for _ in range(self.max_len - 1):
                 next_tokens = self._next_logits(tgt, enc_out, src_mask).argmax(dim=-1)
@@ -116,7 +111,6 @@ class TranslationGenerator:
         batch_size: int = 128,
         length_penalty: float = 1.0,
         no_repeat_ngram_size: int | None = None,
-        tgt_prefix_token: str | None = None,
     ) -> list[str]:
         vocab_size = self.tgt_tok.get_vocab_size()
         n_block = self.no_repeat_ngram_size if no_repeat_ngram_size is None else no_repeat_ngram_size
@@ -132,11 +126,7 @@ class TranslationGenerator:
             enc_out = enc_out.repeat_interleave(k, dim=0)
             src_mask = src_mask.repeat_interleave(k, dim=0)
             
-            if tgt_prefix_token:
-                prefix_id = self.tgt_tok.token_to_id(tgt_prefix_token)
-                tgt = torch.tensor([[self.sos_tgt, prefix_id]], dtype=torch.long, device=self.device).repeat(b * k, 1)
-            else:
-                tgt = torch.full((b * k, 1), self.sos_tgt, dtype=torch.long, device=self.device)
+            tgt = torch.full((b * k, 1), self.sos_tgt, dtype=torch.long, device=self.device)
 
             scores = torch.full((b, k), float("-inf"), device=self.device)
             scores[:, 0] = 0.0  

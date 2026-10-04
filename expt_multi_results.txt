@@ -1,4 +1,90 @@
+==================================================
+      INITIALIZING MULTILINGUAL PIPELINE
+==================================================
+Base Pairs   : ['en-hi', 'en-mr', 'en-sa']
+Gen. Tokens  : ['<2en>', '<2hi>', '<2mr>', '<2sa>']
+Tokenizers   : Shared UNIGRAM (Vocab: 24000)
+Epochs       : 10
+Save Best    : True
+GPUs Active  : 2
+==================================================
 
+Loading MR pairs from ai4bharat/samanantar...
+Removed 292 training pairs whose English text appears in a val/test split.
+Training shared multilingual tokenizer...
+[00:00:00] Suffix array seeds             ██████████████████ 249647   /   249647[00:00:00] Suffix array seeds             ██████████████████ 0        /        0
+[00:00:53] EM training                    ██████████████████ 20       /       20
+Epoch  1/10 | Time: 1m 05s | Train Loss: 6.9995 | Val Loss: 5.2431              
+Epoch  2/10 | Time: 1m 06s | Train Loss: 5.2031 | Val Loss: 4.3787              
+Epoch  3/10 | Time: 1m 06s | Train Loss: 4.6537 | Val Loss: 4.0034              
+Epoch  4/10 | Time: 1m 06s | Train Loss: 4.3362 | Val Loss: 3.8100              
+Epoch  5/10 | Time: 1m 07s | Train Loss: 4.1254 | Val Loss: 3.6793              
+Epoch  6/10 | Time: 1m 06s | Train Loss: 3.9700 | Val Loss: 3.6070              
+Epoch  7/10 | Time: 1m 06s | Train Loss: 3.8513 | Val Loss: 3.5672              
+Epoch  8/10 | Time: 1m 06s | Train Loss: 3.7656 | Val Loss: 3.5465              
+Epoch  9/10 | Time: 1m 06s | Train Loss: 3.7113 | Val Loss: 3.5403              
+Epoch 10/10 | Time: 1m 07s | Train Loss: 3.6866 | Val Loss: 3.5404              
+                                                                                
+======================================================================
+              CONSOLIDATED MULTILINGUAL STATISTICS
+======================================================================
+Dataset Strategy  : Bidirectional Augmentation with Target Prefixes
+Tokenizers Used   : Shared Vocabulary (UNIGRAM)
+Shared Vocab Size : 24,000
+Model Parameters  : 26,320,896 (100.4 MB fp32)
+Transformer Arch  : d_model 256 / num_layers 4/ d_ff 768
+----------------------------------------------------------------------
+Epochs            : 10
+BlEU Samples      : 1000 (per pair)
+Steps per Epoch   : 521
+Total Train Time  : 11.20 minutes
+Peak GPU Memory   : 14.96 GB Reserved / 10.50 GB Allocated
+----------------------------------------------------------------------
+Final Target Benchmarks (Beam Decoding):
+  EN-HI   -> BLEU:  4.45 | CHRF: 22.99
+  HI-EN   -> BLEU:  5.93 | CHRF: 26.56
+  EN-MR   -> BLEU:  3.65 | CHRF: 24.32
+  MR-EN   -> BLEU:  7.20 | CHRF: 27.76
+  EN-SA   -> BLEU:  6.96 | CHRF: 23.71
+  SA-EN   -> BLEU: 12.57 | CHRF: 30.55
+======================================================================
+
+
+BLEU signature: nrefs:1|case:lc|eff:no|tok:intl|smooth:exp|version:2.6.0
+chrF signature: nrefs:1|case:lc|eff:yes|nc:6|nw:0|space:no|version:2.6.0
+
+=== Config Sample Translations (multilingual) ===
+--- -> HI ---
+[1] SRC  : farmer is important to the country
+    Greedy : किसान देश का महत्वपूर्ण है
+    Beam   : किसान देश के लिए महत्वपूर्ण है
+
+--- -> MR ---
+[2] SRC  : farmer is important to the country
+    Greedy : शेतकरी महत्त्वाचा महत्त्वाचा आहे
+    Beam   : शेतकरी महत्त्वाचा महत्त्वाचा आहे
+
+--- -> SA ---
+[3] SRC  : farmer is important to the country
+    Greedy : कृषकः देशं महत्वपूर्णः ।
+    Beam   : कृषकः देशं महत्वपूर्णः ।
+
+--- -> HI ---
+[4] SRC  : education is essential for every child
+    Greedy : बच्चे के लिए हर शिक्षा का आवश्यक है
+    Beam   : बच्चे की शिक्षा के लिए आवश्यक है।
+
+--- -> MR ---
+[5] SRC  : education is essential for every child
+    Greedy : शिक्षणासाठी शिक्षणाचा हक्क आहे
+    Beam   : शिक्षणासाठी शिक्षणासाठी आवश्यक आहे
+
+--- -> SA ---
+[6] SRC  : education is essential for every child
+    Greedy : बाल: प्रत्येकस्य आवश्यकता वर्तते ।
+    Beam   : शिक्षणाय बालिकं आवश्यकमस्ति ।
+
+---
 /content/multilingual_transformer/work_dir
 
 ==================================================

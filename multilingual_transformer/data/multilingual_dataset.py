@@ -2,13 +2,14 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Any
+import pickle
+import os
 
 import torch
 from datasets import load_dataset
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
 from multilingual_transformer.data.sampler import BucketBatchSampler
-import os
 
 from multilingual_transformer.data.dataset import (
     PadCollator,
@@ -45,7 +46,6 @@ class MultilingualDataPipeline:
         force_download: bool = False, 
         verbose: bool = True, 
     ) -> dict[str, Any]:
-        import pickle
         self.data_dir.mkdir(parents=True, exist_ok=True)
         
         lang_hash = "_".join(sorted(self.dataset_map.keys()))
@@ -62,11 +62,11 @@ class MultilingualDataPipeline:
 
         train_src, train_tgt = [], []
         eval_splits: dict[str, dict[str, list[str]]] = {}
-
         per_lang = {}
 
         for tgt_lang, ds_name in self.dataset_map.items():
-            print(f"Loading {tgt_lang.upper()} pairs from {ds_name}...")
+            if verbose:
+                print(f"Loading {tgt_lang.upper()} pairs from {ds_name}...")
             total_needed = pairs_per_lang + val_per_lang + test_per_lang
 
             args = (ds_name, tgt_lang) if ds_name != "acomquest/Saamayik" else (ds_name,)
@@ -79,7 +79,7 @@ class MultilingualDataPipeline:
 
             cur_en, cur_tgt = [], []
             seen = set()
-            with tqdm(total=total_needed, desc=f"Extracting {tgt_lang.upper()}") as pbar:
+            with tqdm(total=total_needed, desc=f"Extracting {tgt_lang.upper()}", disable=not verbose) as pbar:
                 for row in ds:
                     en, tg = self._extract_pair(row, ds_name, tgt_lang)
                     key = en.lower()
@@ -106,7 +106,6 @@ class MultilingualDataPipeline:
 
             per_lang[tgt_lang] = (tr_e, tr_t, va_e, va_t, te_e, te_t)
 
-        # data leakage
         eval_en = {s.lower() for v in per_lang.values() for s in v[2] + v[4]}
         n_dropped = 0
         for tgt_lang, (tr_e, tr_t, va_e, va_t, te_e, te_t) in per_lang.items():
@@ -114,26 +113,20 @@ class MultilingualDataPipeline:
             n_dropped += len(tr_e) - len(kept)
             tr_e, tr_t = [e for e, _ in kept], [t for _, t in kept]
 
-            # Dual Target Forcing: Tag goes on BOTH the encoder input and decoder target
+            # ORIGINAL ARCHITECTURE: Target prefix applied to Encoder Input ONLY
             train_src.extend([f"<2{tgt_lang}> {e}" for e in tr_e])
-            train_tgt.extend([f"<2{tgt_lang}> {t}" for t in tr_t])
+            train_tgt.extend(tr_t)
             
             train_src.extend([f"<2en> {t}" for t in tr_t])
-            train_tgt.extend([f"<2en> {e}" for e in tr_e])
+            train_tgt.extend(tr_e)
             
             eval_splits[f"en-{tgt_lang}"] = {
-                "val_src": [f"<2{tgt_lang}> {e}" for e in va_e], 
-                "val_tgt": [f"<2{tgt_lang}> {t}" for t in va_t],
-                "test_src": [f"<2{tgt_lang}> {e}" for e in te_e], 
-                "test_tgt": [f"<2{tgt_lang}> {t}" for t in te_t],
-                "tgt_prefix": f"<2{tgt_lang}>"
+                "val_src": [f"<2{tgt_lang}> {e}" for e in va_e], "val_tgt": va_t,
+                "test_src": [f"<2{tgt_lang}> {e}" for e in te_e], "test_tgt": te_t,
             }
             eval_splits[f"{tgt_lang}-en"] = {
-                "val_src": [f"<2en> {t}" for t in va_t], 
-                "val_tgt": [f"<2en> {e}" for e in va_e],
-                "test_src": [f"<2en> {t}" for t in te_t], 
-                "test_tgt": [f"<2en> {e}" for e in te_e],
-                "tgt_prefix": "<2en>"
+                "val_src": [f"<2en> {t}" for t in va_t], "val_tgt": va_e,
+                "test_src": [f"<2en> {t}" for t in te_t], "test_tgt": te_e,
             }
             
         if verbose:

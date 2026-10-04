@@ -55,7 +55,7 @@ def main() -> None:
     )
 
     print("\n" + "=" * 60)
-    print("Universal Translation Matrix (Zero-Shot Enabled)")
+    print("Universal Translation Matrix (Pivot Enabled)")
     print(f"Supported Target Codes: {', '.join(valid_langs)}")
     print("Type 'q' to quit.")
     print("=" * 60 + "\n")
@@ -74,7 +74,6 @@ def main() -> None:
                 continue
 
             tgt_lang, text = [part.strip() for part in raw_input.split(":", 1)]
-            
             tgt_lang = tgt_lang.lower()
 
             if tgt_lang not in valid_langs:
@@ -83,13 +82,24 @@ def main() -> None:
             if not text:
                 continue
 
-            tgt_prefix = token_fmt.format(tgt_lang)
-            
-            # 1. Add tag to the text (For the Encoder)
-            prefixed_text = f"{tgt_prefix} {text}"
-            
-            # 2. Pass the tag argument (For the Decoder)
-            beam_out = generator.batched_beam_decode([prefixed_text], beam_size=5, tgt_prefix_token=tgt_prefix)[0]
+            # Automated Pivot Logic for Indic <-> Indic
+            if "en" in valid_langs and tgt_lang != "en" and not text.isascii():
+                # Step 1: Indic -> English
+                en_prefix = token_fmt.format("en")
+                pivot_input = f"{en_prefix} {text}"
+                pivot_text = generator.batched_beam_decode([pivot_input], beam_size=5)[0]
+                print(f"[EN PIVOT]   : {pivot_text}")
+                
+                # Step 2: English -> Target Indic
+                tgt_prefix = token_fmt.format(tgt_lang)
+                final_input = f"{tgt_prefix} {pivot_text}"
+                beam_out = generator.batched_beam_decode([final_input], beam_size=5)[0]
+            else:
+                # Direct Translation
+                tgt_prefix = token_fmt.format(tgt_lang)
+                final_input = f"{tgt_prefix} {text}"
+                beam_out = generator.batched_beam_decode([final_input], beam_size=5)[0]
+                
             print(f"[{tgt_lang.upper()} Beam]: {beam_out}\n")
             
         except (KeyboardInterrupt, EOFError):
