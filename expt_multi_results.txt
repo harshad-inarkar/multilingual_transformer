@@ -1,5 +1,92 @@
 
+/content/multilingual_transformer/work_dir
 
+==================================================
+      INITIALIZING MULTILINGUAL PIPELINE
+==================================================
+Base Pairs   : ['en-hi', 'en-mr', 'en-sa']
+Gen. Tokens  : ['<2en>', '<2hi>', '<2mr>', '<2sa>']
+Tokenizers   : Shared UNIGRAM (Vocab: 24000)
+Epochs       : 10
+Save Best    : True
+GPUs Active  : 2
+==================================================
+
+Loading cached multilingual corpus from multi_corpus_hi_mr_sa_50000_5000_5000_s42_l96_r5.0.pkl...
+Training shared multilingual tokenizer...
+[00:00:00] Suffix array seeds             ██████████████████ 249647   /   249647[00:00:00] Suffix array seeds             ██████████████████ 0        /        0
+[00:00:50] EM training                    ██████████████████ 20       /       20
+Epoch  1/10 | Time: 1m 08s | Train Loss: 7.0713 | Val Loss: 5.2954              
+Epoch  2/10 | Time: 1m 12s | Train Loss: 5.2357 | Val Loss: 4.4248              
+Epoch  3/10 | Time: 1m 12s | Train Loss: 4.6807 | Val Loss: 4.0416              
+Epoch  4/10 | Time: 1m 11s | Train Loss: 4.3624 | Val Loss: 3.8524              
+Epoch  5/10 | Time: 1m 12s | Train Loss: 4.1482 | Val Loss: 3.7240              
+Epoch  6/10 | Time: 1m 12s | Train Loss: 3.9919 | Val Loss: 3.6518              
+Epoch  7/10 | Time: 1m 11s | Train Loss: 3.8724 | Val Loss: 3.6111              
+Epoch  8/10 | Time: 1m 11s | Train Loss: 3.7857 | Val Loss: 3.5912              
+Epoch  9/10 | Time: 1m 11s | Train Loss: 3.7305 | Val Loss: 3.5854              
+Epoch 10/10 | Time: 1m 12s | Train Loss: 3.7053 | Val Loss: 3.5858              
+                                                                                
+======================================================================
+              CONSOLIDATED MULTILINGUAL STATISTICS
+======================================================================
+Dataset Strategy  : Bidirectional Augmentation with Target Prefixes
+Tokenizers Used   : Shared Vocabulary (UNIGRAM)
+Shared Vocab Size : 24,000
+Model Parameters  : 26,320,896 (100.4 MB fp32)
+Transformer Arch  : d_model 256 / num_layers 4/ d_ff 768
+----------------------------------------------------------------------
+Epochs            : 10
+BlEU Samples      : 1000 (per pair)
+Steps per Epoch   : 521
+Total Train Time  : 12.05 minutes
+Peak GPU Memory   : 14.80 GB Reserved / 10.50 GB Allocated
+----------------------------------------------------------------------
+Final Target Benchmarks (Beam Decoding):
+  EN-HI   -> BLEU:  4.55 | CHRF: 23.21
+  HI-EN   -> BLEU:  5.89 | CHRF: 26.56
+  EN-MR   -> BLEU:  3.77 | CHRF: 24.22
+  MR-EN   -> BLEU:  7.13 | CHRF: 28.16
+  EN-SA   -> BLEU:  7.00 | CHRF: 23.81
+  SA-EN   -> BLEU: 13.14 | CHRF: 30.90
+======================================================================
+
+
+BLEU signature: nrefs:1|case:lc|eff:no|tok:intl|smooth:exp|version:2.6.0
+chrF signature: nrefs:1|case:lc|eff:yes|nc:6|nw:0|space:no|version:2.6.0
+
+=== Config Sample Translations (multilingual) ===
+--- -> HI ---
+[1] SRC  : farmer is important to the country
+    Greedy : शेतकऱ्यांना देश महत्त्वाचा
+    Beam   : किसानों को पूरा करने के लिए महत्वपूर्ण है।
+
+--- -> MR ---
+[2] SRC  : farmer is important to the country
+    Greedy : देशाचा हा मुद्दा आहे
+    Beam   : शेतकऱ्यांना मोठा महत्त्वाचा प्रश्न आहे
+
+--- -> SA ---
+[3] SRC  : farmer is important to the country
+    Greedy : देशातील शेतकऱ्यांची महत्त्वाची
+    Beam   : देशातील शेतकऱ्यांना महत्त्वाचा आहे
+
+--- -> HI ---
+[4] SRC  : education is essential for every child
+    Greedy : प्रत्येक शिक्षणासाठी प्रत्येक मुलाचा खर्च
+    Beam   : शिक्षा के लिए हर बच्चे के लिए सभी जरूरी है।
+
+--- -> MR ---
+[5] SRC  : education is essential for every child
+    Greedy : प्रत्येक मुलाची वैद्यकीय शिक्षणासाठी आवश्यक आहे
+    Beam   : प्रत्येक मुलाची वैद्यकीय शिक्षणासाठी आवश्यक आहे
+
+--- -> SA ---
+[6] SRC  : education is essential for every child
+    Greedy : मुलांच्या शिक्षाासाठी प्रत्येक शिक्षणासाठी शिक्षण
+    Beam   : बच्चों के लिए हर शिक्षा के लिए आवश्यक है।
+
+---
 /content/multilingual_transformer/work_dir
 
 ==================================================

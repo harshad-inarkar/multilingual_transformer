@@ -106,6 +106,7 @@ class MultilingualDataPipeline:
 
             per_lang[tgt_lang] = (tr_e, tr_t, va_e, va_t, te_e, te_t)
 
+        # data leakage
         eval_en = {s.lower() for v in per_lang.values() for s in v[2] + v[4]}
         n_dropped = 0
         for tgt_lang, (tr_e, tr_t, va_e, va_t, te_e, te_t) in per_lang.items():
@@ -113,23 +114,28 @@ class MultilingualDataPipeline:
             n_dropped += len(tr_e) - len(kept)
             tr_e, tr_t = [e for e, _ in kept], [t for _, t in kept]
 
-            # Source gets plain text, Target gets the target prefix token
-            train_src.extend(tr_e)
+            # Dual Target Forcing: Tag goes on BOTH the encoder input and decoder target
+            train_src.extend([f"<2{tgt_lang}> {e}" for e in tr_e])
             train_tgt.extend([f"<2{tgt_lang}> {t}" for t in tr_t])
             
-            train_src.extend(tr_t)
+            train_src.extend([f"<2en> {t}" for t in tr_t])
             train_tgt.extend([f"<2en> {e}" for e in tr_e])
             
             eval_splits[f"en-{tgt_lang}"] = {
-                "val_src": va_e, "val_tgt": [f"<2{tgt_lang}> {t}" for t in va_t],
-                "test_src": te_e, "test_tgt": [f"<2{tgt_lang}> {t}" for t in te_t],
+                "val_src": [f"<2{tgt_lang}> {e}" for e in va_e], 
+                "val_tgt": [f"<2{tgt_lang}> {t}" for t in va_t],
+                "test_src": [f"<2{tgt_lang}> {e}" for e in te_e], 
+                "test_tgt": [f"<2{tgt_lang}> {t}" for t in te_t],
                 "tgt_prefix": f"<2{tgt_lang}>"
             }
             eval_splits[f"{tgt_lang}-en"] = {
-                "val_src": va_t, "val_tgt": [f"<2en> {e}" for e in va_e],
-                "test_src": te_t, "test_tgt": [f"<2en> {e}" for e in te_e],
+                "val_src": [f"<2en> {t}" for t in va_t], 
+                "val_tgt": [f"<2en> {e}" for e in va_e],
+                "test_src": [f"<2en> {t}" for t in te_t], 
+                "test_tgt": [f"<2en> {e}" for e in te_e],
                 "tgt_prefix": "<2en>"
             }
+            
         if verbose:
             print(f"Removed {n_dropped:,} training pairs whose English text appears in a val/test split.")
 

@@ -74,6 +74,7 @@ def main() -> None:
                 continue
 
             tgt_lang, text = [part.strip() for part in raw_input.split(":", 1)]
+            
             tgt_lang = tgt_lang.lower()
 
             if tgt_lang not in valid_langs:
@@ -83,7 +84,12 @@ def main() -> None:
                 continue
 
             tgt_prefix = token_fmt.format(tgt_lang)
-            beam_out = generator.batched_beam_decode([text], beam_size=5, tgt_prefix_token=tgt_prefix)[0]
+            
+            # 1. Add tag to the text (For the Encoder)
+            prefixed_text = f"{tgt_prefix} {text}"
+            
+            # 2. Pass the tag argument (For the Decoder)
+            beam_out = generator.batched_beam_decode([prefixed_text], beam_size=5, tgt_prefix_token=tgt_prefix)[0]
             print(f"[{tgt_lang.upper()} Beam]: {beam_out}\n")
             
         except (KeyboardInterrupt, EOFError):

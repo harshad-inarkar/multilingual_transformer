@@ -42,10 +42,13 @@ class MultilingualTranslationWidget:
                 tgt_prefix = self.token_fmt.format(tgt_lang)
                 text = text_box.value
                 
+                # 1. Add tag to the text (For the Encoder)
+                prefixed_text = f"{tgt_prefix} {text}"
+                
                 if method_dropdown.value == "greedy":
-                    res = self.generator.greedy_decode(text, tgt_prefix_token=tgt_prefix)
+                    res = self.generator.greedy_decode(prefixed_text, tgt_prefix_token=tgt_prefix)
                 else:
-                    res = self.generator.batched_beam_decode([text], beam_size=5, tgt_prefix_token=tgt_prefix)[0]
+                    res = self.generator.batched_beam_decode([prefixed_text], beam_size=5, tgt_prefix_token=tgt_prefix)[0]
                     
                 print(f"[{src_dropdown.value.upper()}] : {text}")
                 print(f"[{tgt_dropdown.value.upper()}] : {res}")
