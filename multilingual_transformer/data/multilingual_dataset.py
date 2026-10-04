@@ -54,8 +54,9 @@ class MultilingualDataPipeline:
               
         cache_path = self.data_dir / cache_name
         
-        if not force_download and cache_path.exists() and verbose:
-            print(f"Loading cached multilingual corpus from {cache_path.name}...")
+        if not force_download and cache_path.exists():
+            if verbose:
+                print(f"Loading cached multilingual corpus from {cache_path.name}...")
             with open(cache_path, "rb") as f:
                 return pickle.load(f)
 

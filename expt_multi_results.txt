@@ -1,6 +1,204 @@
 
 
+/content/multilingual_transformer/work_dir
 
+==================================================
+      INITIALIZING MULTILINGUAL PIPELINE
+==================================================
+Base Pairs   : ['en-hi', 'en-mr', 'en-sa']
+Gen. Tokens  : ['<2en>', '<2hi>', '<2mr>', '<2sa>']
+Tokenizers   : Shared UNIGRAM (Vocab: 24000)
+Epochs       : 10
+Save Best    : True
+GPUs Active  : 1
+==================================================
+
+Loading MR pairs from ai4bharat/samanantar...
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Extracting MR: 100% 60000/60000 [00:04<00:00, 13762.72it/s]
+Loading SA pairs from acomquest/Saamayik...
+Extracting SA:  67% 40190/60000 [00:04<00:02, 9827.54it/s] 
+Loading HI pairs from ai4bharat/samanantar...
+Extracting HI: 100% 60000/60000 [00:04<00:00, 13202.27it/s]
+Removed 292 training pairs whose English text appears in a val/test split.
+Training shared multilingual tokenizer...
+[00:00:00] Suffix array seeds             ██████████████████ 249647   /   249647
+[00:01:14] EM training                    ██████████████████ 20       /       20
+Epoch  1/10 | Time: 1m 34s | Train Loss: 6.9514 | Val Loss: 5.1901
+Epoch  2/10 | Time: 1m 38s | Train Loss: 5.1954 | Val Loss: 4.3599
+Epoch  3/10 | Time: 1m 37s | Train Loss: 4.6444 | Val Loss: 4.0187
+Epoch  4/10 | Time: 1m 38s | Train Loss: 4.3364 | Val Loss: 3.8589
+Epoch  5/10 | Time: 1m 38s | Train Loss: 4.1235 | Val Loss: 3.7493
+Epoch  6/10 | Time: 1m 38s | Train Loss: 3.9566 | Val Loss: 3.6805
+Epoch  7/10 | Time: 1m 38s | Train Loss: 3.8217 | Val Loss: 3.6515
+Epoch  8/10 | Time: 1m 38s | Train Loss: 3.7178 | Val Loss: 3.6310
+Epoch  9/10 | Time: 1m 38s | Train Loss: 3.6479 | Val Loss: 3.6283
+Epoch 10/10 | Time: 1m 38s | Train Loss: 3.6132 | Val Loss: 3.6288
+
+======================================================================
+              CONSOLIDATED MULTILINGUAL STATISTICS
+======================================================================
+Dataset Strategy  : Bidirectional Augmentation with Target Prefixes
+Tokenizers Used   : Shared Vocabulary (UNIGRAM)
+Shared Vocab Size : 24,000
+Model Parameters  : 26,320,896 (100.4 MB fp32)
+Transformer Arch  : d_model 256 / num_layers 4/ d_ff 768
+----------------------------------------------------------------------
+Epochs            : 10
+BlEU Samples      : 1000 (per pair)
+Steps per Epoch   : 1,041
+Total Train Time  : 17.01 minutes
+Peak GPU Memory   : 15.39 GB Reserved / 10.40 GB Allocated
+----------------------------------------------------------------------
+Final Target Benchmarks (Beam Decoding):
+  EN-HI   -> BLEU:  6.13 | CHRF: 25.37
+  HI-EN   -> BLEU:  7.49 | CHRF: 28.41
+  EN-MR   -> BLEU:  5.84 | CHRF: 27.15
+  MR-EN   -> BLEU: 10.47 | CHRF: 31.41
+  EN-SA   -> BLEU:  8.79 | CHRF: 26.86
+  SA-EN   -> BLEU: 16.26 | CHRF: 34.37
+======================================================================
+
+
+BLEU signature: nrefs:1|case:lc|eff:no|tok:intl|smooth:exp|version:2.6.0
+chrF signature: nrefs:1|case:lc|eff:yes|nc:6|nw:0|space:no|version:2.6.0
+
+=== Config Sample Translations (multilingual) ===
+--- -> HI ---
+[1] SRC  : farmer is important to the country
+    Greedy : किसान देश के लिए महत्वपूर्ण है
+    Beam   : किसान देश के लिए महत्वपूर्ण है।
+
+--- -> MR ---
+[2] SRC  : farmer is important to the country
+    Greedy : देशातील शेतकऱ्यांसाठी महत्त्वाचे
+    Beam   : देशातील शेतकऱ्यांचे महत्वाचे महत्त्वाचे
+
+--- -> SA ---
+[3] SRC  : farmer is important to the country
+    Greedy : कृषकः देशे महत्वपूर्णा अस्ति ।
+    Beam   : कृषकः देशम् आवश्यकम् ।
+
+--- -> HI ---
+[4] SRC  : education is essential for every child
+    Greedy : सभी शिक्षा के लिए आवश्यक शिक्षा
+    Beam   : बच्चे के लिए हर शिक्षा के लिए आवश्यक है
+
+--- -> MR ---
+[5] SRC  : education is essential for every child
+    Greedy : सर्व शिक्षणासाठी शिक्षणासाठी अनिवार्य
+    Beam   : प्रत्येक शिक्षणासाठी शिक्षणासाठी आवश्यक आहे
+
+--- -> SA ---
+[6] SRC  : education is essential for every child
+    Greedy : """एक शिक्षा के लिए, एक महत्वपूर्ण शिक्षा है ।"""
+    Beam   : """एक शिक्षा के लिए आवश्यकमस्ति,""
+
+
+---
+/content/multilingual_transformer/work_dir
+
+==================================================
+      INITIALIZING MULTILINGUAL PIPELINE
+==================================================
+Base Pairs   : ['en-hi', 'en-mr', 'en-sa']
+Gen. Tokens  : ['<2en>', '<2hi>', '<2mr>', '<2sa>']
+Tokenizers   : Shared UNIGRAM (Vocab: 24000)
+Epochs       : 10
+Save Best    : True
+GPUs Active  : 2
+==================================================
+
+Loading SA pairs from acomquest/Saamayik...
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Extracting SA:  67%|████████████▋      | 40190/60000 [00:03<00:01, 11871.04it/s]
+Loading MR pairs from ai4bharat/samanantar...
+Extracting MR: 100%|███████████████████| 60000/60000 [00:04<00:00, 12232.23it/s]
+Loading HI pairs from ai4bharat/samanantar...
+Extracting HI: 100%|███████████████████| 60000/60000 [00:04<00:00, 12425.19it/s]
+Removed 292 training pairs whose English text appears in a val/test split.
+Training shared multilingual tokenizer...
+[00:00:00] Suffix array seeds             ██████████████████ 249647   /   249647[00:00:00] Suffix array seeds             ██████████████████ 0        /        0
+[00:00:53] EM training                    ██████████████████ 20       /       20
+Loading SA pairs from acomquest/Saamayik...
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Extracting SA:  67%|█████████████▍      | 40190/60000 [00:06<00:03, 5799.06it/s]
+Loading HI pairs from ai4bharat/samanantar...
+Extracting HI: 100%|████████████████████| 60000/60000 [00:07<00:00, 7988.86it/s]
+Loading MR pairs from ai4bharat/samanantar...
+Extracting MR: 100%|████████████████████| 60000/60000 [00:07<00:00, 7500.19it/s]
+Removed 292 training pairs whose English text appears in a val/test split.
+Epoch  1/10 | Time: 1m 08s | Train Loss: 7.2970 | Val Loss: 5.4866              
+Epoch  2/10 | Time: 1m 09s | Train Loss: 5.4294 | Val Loss: 4.6121              
+Epoch  3/10 | Time: 1m 09s | Train Loss: 4.8436 | Val Loss: 4.2295              
+Epoch  4/10 | Time: 1m 08s | Train Loss: 4.5037 | Val Loss: 4.0312              
+Epoch  5/10 | Time: 1m 09s | Train Loss: 4.2790 | Val Loss: 3.9076              
+Epoch  6/10 | Time: 1m 09s | Train Loss: 4.1156 | Val Loss: 3.8341              
+Epoch  7/10 | Time: 1m 08s | Train Loss: 3.9982 | Val Loss: 3.7877              
+Epoch  8/10 | Time: 1m 08s | Train Loss: 3.9134 | Val Loss: 3.7670              
+Epoch  9/10 | Time: 1m 08s | Train Loss: 3.8619 | Val Loss: 3.7580              
+Epoch 10/10 | Time: 1m 09s | Train Loss: 3.8417 | Val Loss: 3.7575              
+                                                                                
+======================================================================
+              CONSOLIDATED MULTILINGUAL STATISTICS
+======================================================================
+Dataset Strategy  : Bidirectional Augmentation with Target Prefixes
+Tokenizers Used   : Shared Vocabulary (UNIGRAM)
+Shared Vocab Size : 24,000
+Model Parameters  : 26,320,896 (100.4 MB fp32)
+Transformer Arch  : d_model 256 / num_layers 4/ d_ff 768
+----------------------------------------------------------------------
+Epochs            : 10
+BlEU Samples      : 1000 (per pair)
+Steps per Epoch   : 521
+Total Train Time  : 11.61 minutes
+Peak GPU Memory   : 14.72 GB Reserved / 10.50 GB Allocated
+----------------------------------------------------------------------
+Final Target Benchmarks (Beam Decoding):
+  EN-HI   -> BLEU:  5.12 | CHRF: 24.14
+  HI-EN   -> BLEU:  6.82 | CHRF: 27.15
+  EN-MR   -> BLEU:  4.79 | CHRF: 25.91
+  MR-EN   -> BLEU:  9.26 | CHRF: 29.69
+  EN-SA   -> BLEU:  8.04 | CHRF: 24.61
+  SA-EN   -> BLEU: 15.06 | CHRF: 32.31
+======================================================================
+
+
+BLEU signature: nrefs:1|case:lc|eff:no|tok:intl|smooth:exp|version:2.6.0
+chrF signature: nrefs:1|case:lc|eff:yes|nc:6|nw:0|space:no|version:2.6.0
+
+=== Config Sample Translations (multilingual) ===
+--- -> HI ---
+[1] SRC  : farmer is important to the country
+    Greedy : किसानों को महत्वपूर्ण है।
+    Beam   : किसानों के लिए महत्वपूर्ण है।
+
+--- -> MR ---
+[2] SRC  : farmer is important to the country
+    Greedy : शेतकरी हा देश महत्त्वाचा महत्त्वाचा आहे
+    Beam   : शेतकऱ्यांना देशाचा महत्वाचा महत्त्वाचा आहे
+
+--- -> SA ---
+[3] SRC  : farmer is important to the country
+    Greedy : कृषकः देशम् आवश्यकम् ।
+    Beam   : कृषकः देशम् आवश्यकम् ।
+
+--- -> HI ---
+[4] SRC  : education is essential for every child
+    Greedy : शिक्षा के लिए शिक्षा की आवश्यकता है
+    Beam   : शिक्षा के लिए शिक्षा की आवश्यकता है
+
+--- -> MR ---
+[5] SRC  : education is essential for every child
+    Greedy : शिक्षणासाठी शिक्षणासाठी आवश्यक आहे
+    Beam   : शिक्षणासाठी प्रत्येक शिक्षणासाठी आवश्यक आहे
+
+--- -> SA ---
+[6] SRC  : education is essential for every child
+    Greedy : बाल: तस्यां वर्धनाय आवश्यकमस्ति ।
+    Beam   : बाल: एतासु योगदानं करोति ।
+
+-----
 /content/multilingual_transformer/work_dir
 
 ==================================================
