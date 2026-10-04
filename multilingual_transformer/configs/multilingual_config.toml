@@ -81,5 +81,8 @@ save_best = true
 [inference]
 no_repeat_ngram_size = 3
 sample_source = "config"
-num_samples = 5
-sample_sentences = []
+num_samples = 4
+sample_sentences = ["farmer is important to the country", 
+"hi: education is essential for every child",
+"mr: education is essential for every child",
+"sa: education is essential for every child"]

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import os
 from pathlib import Path
 from typing import Any
 
@@ -111,7 +110,9 @@ class DataPipeline:
         try:
             ds = load_dataset(*args, split="train")
         except (TypeError, ValueError, RuntimeError):
-            ds = load_dataset(*args, split="train")
+            raise ValueError(f"Error load dataset {args}")
+
+
         return ds.shuffle(seed=self.seed)
 
     def _extract_pair(self, row: dict[str, Any]) -> tuple[str, str]:

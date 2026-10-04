@@ -32,7 +32,7 @@ class Trainer:
         self.rank = rank
         self.world_size = world_size
         self.is_main = rank == 0
-        self.device = torch.device(f"cuda:{rank}")
+        self.device = torch.device("cuda", torch.cuda.current_device())
         self.config = config
         self.train_loader = train_loader
         self.val_loader = val_loader
@@ -45,7 +45,7 @@ class Trainer:
         if config.training.torch_compile:
             self.model = torch.compile(self.model, dynamic=True)
         if world_size > 1:
-            self.model = DDP(self.model, device_ids=[rank], output_device=rank, broadcast_buffers=False)
+            self.model = DDP(self.model, device_ids=[self.device.index], output_device=self.device.index, broadcast_buffers=False)
 
         self.pad_src = src_tok.token_to_id("<pad>")
         self.pad_tgt = tgt_tok.token_to_id("<pad>")

@@ -1,9 +1,6 @@
 from __future__ import annotations
 
-import argparse
 import random
-from pathlib import Path
-
 import torch
 
 from multilingual_transformer.configs.config import AppConfig
@@ -14,6 +11,9 @@ from multilingual_transformer.engine.loader import build_model, fit_tokenizers, 
 from multilingual_transformer.engine.trainer import Trainer
 from multilingual_transformer.utils.distributed import barrier, run_auto_distributed
 from multilingual_transformer.utils.helpers import free_memory, set_seed
+
+import argparse
+from pathlib import Path
 
 
 def print_stats_table(
@@ -123,7 +123,7 @@ def train_worker(rank: int, world_size: int, config_path: str) -> None:
 
     # Multi-GPU Beam and Greedy Inference
     generator = TranslationGenerator(
-        model, tok_src, tok_tgt, cfg.data.max_len, torch.device(f"cuda:{rank}"),
+        model, tok_src, tok_tgt, cfg.data.max_len, torch.device("cuda", torch.cuda.current_device()),
         no_repeat_ngram_size=cfg.inference.no_repeat_ngram_size,
     )
     evaluator = TranslationEvaluator(generator)
@@ -175,9 +175,6 @@ def train_worker(rank: int, world_size: int, config_path: str) -> None:
 
 def _launch_train(rank: int, world_size: int) -> None:
     """Top-level wrapper so multiprocessing can pickle the function."""
-    import argparse
-    from pathlib import Path
-    
     script_dir = Path(__file__).resolve().parent
     default_config = script_dir.parent / "configs" / "transformer_config.toml"
     

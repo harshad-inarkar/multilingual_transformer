@@ -7,8 +7,8 @@ This pipeline supports both **One-to-One** translation (training a dedicated mod
 ## Key Architectural Upgrades
 
 - **Multi-GPU DistributedDataParallel (DDP):** Auto-detects GPUs and distributes batches via `mp.spawn`.
-- **Length-Bucketed Sampler:** Sentences of similar lengths are bucketed, minimizing padding overhead to under 10%.
-- **SwiGLU Activation:** Upgraded feed-forward networks to SwiGLU. Using a `3x` dimension ratio (e.g., $d_{model}=256, d_{ff}=768$) maintains a parameter count equivalent to a standard 2-matrix `3x` ReLU setup, while utilizing dynamic gating for better capacity.
+- **SwiGLU feed-forward:** gated FFN (SiLU gate × value, three weight matrices). With `d_ff = 3 × d_model` it has 9·d² weights per layer: 1.5× a ReLU FFN of the same `d_ff`, 1.125× a classic 4× ReLU FFN. For a parameter match to a 4× ReLU FFN use `d_ff ≈ 8/3 × d_model` (683 for `d_model = 256`). The literature (Shazeer, 2020) reports gains over ReLU; they have not been benchmarked in this project.
+- **Length-bucketed sampler:** sentences of similar length are batched together, removing most padding waste. The gain depends on your length distribution, so measure it on your data.
 - **Bidirectional Prefix Augmentation:** Automatically trains the model on bidirectional translation (e.g., `<2hi>`, `<2en>`) in a single pass.
 
 ## Supported Languages and Datasets
@@ -117,6 +117,17 @@ work_dir = f"{base_dir}/{repo_dir}/work_dir"
 
 ```
 
+### Checkpoints, evaluation and GPUs
+
+Both `*_best.pt` and `*_last.pt` are always saved. `save_best` only chooses which one evaluation, the REPL and the widget load.
+
+```bash
+python -m multilingual_transformer.scripts.evaluate --checkpoint best --sample-size 5000 --show-samples
+```
+
+Flags: `--method {both,greedy,beam}`, `--beam-size`, `--no-repeat-ngram`, `--checkpoint {best,last}`. This script is single-GPU and for one-to-one models only. Scoring is sacreBLEU (`tok:intl`, lowercase) plus chrF; the exact signatures are printed with every result. `batch_size` is per GPU, so two GPUs give twice the global batch. `torchrun --standalone --nproc_per_node=N -m ...` also works.
+
+
 
 ## Configuration
 
@@ -186,4 +197,4 @@ multilingual_transformer/
 
 ## License
 
-The source code is released under the [MIT License](https://www.google.com/search?q=LICENSE).
+The source code is released under the [MIT License](LICENSE).

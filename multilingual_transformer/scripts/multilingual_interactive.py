@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import argparse
 from pathlib import Path
 import tomllib
 import warnings
@@ -66,7 +65,7 @@ def main() -> None:
     while True:
         try:
             # Fixed: Removed the leading '\n' that breaks Colab's input box rendering
-            raw_input = input(f"Enter: ").strip()
+            raw_input = input("Enter: ").strip()
             
             if not raw_input:
                 continue

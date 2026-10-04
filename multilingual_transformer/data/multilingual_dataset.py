@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 from pathlib import Path
 from typing import Any
 
@@ -40,23 +39,31 @@ class MultilingualDataPipeline:
         return str(row["src"]).strip(), str(row["tgt"]).strip()
 
     def acquire_multilingual_corpus(
-        self, pairs_per_lang: int, val_per_lang: int, test_per_lang: int, force_download: bool = False
+        self, pairs_per_lang: int, 
+        val_per_lang: int, 
+        test_per_lang: int, 
+        force_download: bool = False, 
+        verbose: bool = True, 
     ) -> dict[str, Any]:
         import pickle
         self.data_dir.mkdir(parents=True, exist_ok=True)
         
         # Create a unique cache name based on requested sizes and languages
         lang_hash = "_".join(sorted(self.dataset_map.keys()))
-        cache_name = f"multi_corpus_{lang_hash}_{pairs_per_lang}_{val_per_lang}_{test_per_lang}.pkl"
+        cache_name = (f"multi_corpus_{lang_hash}_{pairs_per_lang}_{val_per_lang}_{test_per_lang}"
+              f"_s{self.seed}_l{self.max_len}_r{self.max_ratio}.pkl")
+              
         cache_path = self.data_dir / cache_name
         
-        if not force_download and cache_path.exists():
+        if not force_download and cache_path.exists() and verbose:
             print(f"Loading cached multilingual corpus from {cache_path.name}...")
             with open(cache_path, "rb") as f:
                 return pickle.load(f)
 
         train_src, train_tgt = [], []
         eval_splits: dict[str, dict[str, list[str]]] = {}
+
+        per_lang = {}
 
         for tgt_lang, ds_name in self.dataset_map.items():
             print(f"Loading {tgt_lang.upper()} pairs from {ds_name}...")
@@ -66,7 +73,8 @@ class MultilingualDataPipeline:
             try:
                 ds = load_dataset(*args, split="train")
             except Exception:
-                ds = load_dataset(*args, split="train")
+                raise ValueError(f"Error load dataset {args}")
+
             ds = ds.shuffle(seed=self.seed)
 
             cur_en, cur_tgt = [], []
@@ -97,14 +105,18 @@ class MultilingualDataPipeline:
             va_e, va_t = cur_en[bounds[1]:bounds[2]], cur_tgt[bounds[1]:bounds[2]]
             te_e, te_t = cur_en[bounds[2]:bounds[3]], cur_tgt[bounds[2]:bounds[3]]
 
-            
-            # Bidirectional augmentation
-            train_src.extend([f"<2{tgt_lang}> {s}" for s in tr_e])
-            train_tgt.extend(tr_t)
-            train_src.extend([f"<2en> {s}" for s in tr_t])
-            train_tgt.extend(tr_e)
+            per_lang[tgt_lang] = (tr_e, tr_t, va_e, va_t, te_e, te_t)
 
-            # Store directional evaluation sets
+    
+        eval_en = {s.lower() for v in per_lang.values() for s in v[2] + v[4]}   # English in ANY val/test split
+        n_dropped = 0
+        for tgt_lang, (tr_e, tr_t, va_e, va_t, te_e, te_t) in per_lang.items():
+            kept = [(e, t) for e, t in zip(tr_e, tr_t) if e.lower() not in eval_en]
+            n_dropped += len(tr_e) - len(kept)
+            tr_e, tr_t = [e for e, _ in kept], [t for _, t in kept]
+
+            train_src.extend([f"<2{tgt_lang}> {s}" for s in tr_e]); train_tgt.extend(tr_t)
+            train_src.extend([f"<2en> {s}" for s in tr_t]);         train_tgt.extend(tr_e)
             eval_splits[f"en-{tgt_lang}"] = {
                 "val_src": [f"<2{tgt_lang}> {s}" for s in va_e], "val_tgt": va_t,
                 "test_src": [f"<2{tgt_lang}> {s}" for s in te_e], "test_tgt": te_t,
@@ -113,6 +125,8 @@ class MultilingualDataPipeline:
                 "val_src": [f"<2en> {s}" for s in va_t], "val_tgt": va_e,
                 "test_src": [f"<2en> {s}" for s in te_t], "test_tgt": te_e,
             }
+        print(f"Removed {n_dropped:,} training pairs whose English text appears in a val/test split.")
+
 
         # Global val set combining all directions for Trainer
         combined_val_src, combined_val_tgt = [], []
@@ -129,10 +143,12 @@ class MultilingualDataPipeline:
             "eval_splits": eval_splits,
         }
         
-        with open(cache_path, "wb") as f:
+        tmp = cache_path.with_suffix(".tmp")
+
+        with open(tmp, "wb") as f:
             pickle.dump(out_dict, f)
-            
-        return out_dict
+
+        os.replace(tmp, cache_path)
 
 
     @staticmethod

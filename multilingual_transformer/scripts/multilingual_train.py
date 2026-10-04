@@ -1,6 +1,4 @@
 from __future__ import annotations
-
-import argparse
 from pathlib import Path
 import tomllib
 import warnings
@@ -17,7 +15,8 @@ from multilingual_transformer.engine.trainer import Trainer
 from multilingual_transformer.models.transformer import MultilingualTransformer
 from multilingual_transformer.utils.distributed import barrier, run_auto_distributed
 from multilingual_transformer.utils.helpers import free_memory, set_seed
-import pickle
+from multilingual_transformer.utils.reporting import print_signatures, print_multilingual_samples
+
 
 def print_multilingual_stats_table(
     cfg: AppConfig, n_params: int, train_loader_len: int, total_time: float,
@@ -26,7 +25,7 @@ def print_multilingual_stats_table(
     print("\n" + "=" * 70)
     print("              CONSOLIDATED MULTILINGUAL STATISTICS")
     print("=" * 70)
-    print(f"Dataset Strategy  : Bidirectional Augmentation with Target Prefixes")
+    print("Dataset Strategy  : Bidirectional Augmentation with Target Prefixes")
     print(f"Tokenizers Used   : Shared Vocabulary ({cfg.tokenizer.algo_tgt.upper()})")
     print(f"Shared Vocab Size : {vocab_sz:,}")
     print(f"Model Parameters  : {n_params:,} ({n_params * 4 / 1024**2:.1f} MB fp32)")
@@ -100,6 +99,7 @@ def multilingual_worker(rank: int, world_size: int, config_path: str) -> None:
             val_per_lang=raw_cfg["multilingual"]["val_size_per_lang"],
             test_per_lang=raw_cfg["multilingual"]["test_size_per_lang"],
             force_download=cfg.data.force_download,
+            verbose=True,
         )
             
         print("Training shared multilingual tokenizer...")
@@ -119,6 +119,7 @@ def multilingual_worker(rank: int, world_size: int, config_path: str) -> None:
             val_per_lang=raw_cfg["multilingual"]["val_size_per_lang"],
             test_per_lang=raw_cfg["multilingual"]["test_size_per_lang"],
             force_download=False,
+            verbose=False,
         )
         shared_tok = MultilingualTokenizerManager.load(shared_tok_path)
 
@@ -146,7 +147,7 @@ def multilingual_worker(rank: int, world_size: int, config_path: str) -> None:
 
     # Multi-GPU Beam Evaluation across all pairs
     generator = TranslationGenerator(
-        model, shared_tok, shared_tok, cfg.data.max_len, torch.device(f"cuda:{rank}"),
+        model, shared_tok, shared_tok, cfg.data.max_len, torch.device("cuda", torch.cuda.current_device()),
         no_repeat_ngram_size=cfg.inference.no_repeat_ngram_size,
     )
     evaluator = TranslationEvaluator(generator)
@@ -168,18 +169,9 @@ def multilingual_worker(rank: int, world_size: int, config_path: str) -> None:
             results[pair_key] = (bleu, chrf)
 
     if is_main:
-        print("\n" + "=" * 70)
-        print("                    SAVED CHECKPOINTS")
-        print("=" * 70)
-        for label, info in (("Best (lowest val)", trainer.best_info), ("Final (last epoch)", trainer.last_info)):
-            if info:
-                print(f"{label:<19}: epoch {info['epoch']}/{cfg.training.epochs} | "
-                      f"Train {info['train_loss']:.4f} | Val {info['val_loss']:.4f} | {info['path']}")
-        print("=" * 70)
-
-        print_multilingual_stats_table(
-            cfg, n_params, len(tr_loader), train_time, peak_mem, peak_res, vocab_sz, results
-        )
+        print_multilingual_stats_table(cfg, n_params, len(tr_loader), train_time, peak_mem, peak_res, vocab_sz, results)
+        print_signatures(evaluator)
+        print_multilingual_samples(cfg, generator, corpus["eval_splits"], sorted(target_langs), sorted(unique_langs), token_fmt)
 
 
 def _launch_multilingual(rank: int, world_size: int) -> None:
