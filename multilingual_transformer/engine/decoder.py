@@ -12,17 +12,12 @@ from tqdm.auto import tqdm
 
 
 def _banned_ngram_mask(tgt: torch.Tensor, n: int, vocab_size: int) -> torch.Tensor | None:
-    """(B, V) bool mask: True where emitting that token next would repeat an n-gram already in `tgt`.
-
-    For each hypothesis, find earlier occurrences of its current (n-1)-token suffix and ban the token
-    that followed each one. Fully vectorised (no Python loop over beams).
-    """
     length = tgt.size(1)
     if n < 2 or length < n:
         return None
-    windows = tgt.unfold(1, n, 1)                      # (B, L-n+1, n) every existing n-gram
-    suffix = tgt[:, length - (n - 1):]                 # (B, n-1) the prefix of the n-gram being formed
-    match = (windows[:, :, :-1] == suffix.unsqueeze(1)).all(dim=-1)   # (B, L-n+1)
+    windows = tgt.unfold(1, n, 1)                      
+    suffix = tgt[:, length - (n - 1):]                 
+    match = (windows[:, :, :-1] == suffix.unsqueeze(1)).all(dim=-1)   
     rows, cols = match.nonzero(as_tuple=True)
     if rows.numel() == 0:
         return None
@@ -32,8 +27,6 @@ def _banned_ngram_mask(tgt: torch.Tensor, n: int, vocab_size: int) -> torch.Tens
 
 
 class TranslationGenerator:
-    """Greedy / beam decoding. The encoder runs once per batch; the decoder only projects the last position."""
-
     def __init__(
         self,
         model: MultilingualTransformer,
@@ -43,7 +36,7 @@ class TranslationGenerator:
         device: torch.device,
         no_repeat_ngram_size: int = 0,
     ) -> None:
-        self.no_repeat_ngram_size = no_repeat_ngram_size  # beam search only; 0 or 1 disables
+        self.no_repeat_ngram_size = no_repeat_ngram_size  
         self.src_tok = src_tokenizer
         self.tgt_tok = tgt_tokenizer
         self.max_len = max_len
@@ -52,21 +45,18 @@ class TranslationGenerator:
         self.pad_tgt = tgt_tokenizer.token_to_id("<pad>")
         self.sos_tgt = tgt_tokenizer.token_to_id("<sos>")
         self.eos_tgt = tgt_tokenizer.token_to_id("<eos>")
-        # No DataParallel here: decoding calls model.encoder / model.decoder directly.
         self.model = model.to(device).eval()
         self._use_amp = device.type == "cuda"
 
-    # ---- helpers ----
     def _autocast(self) -> torch.autocast:
         return torch.autocast(self.device.type, dtype=torch.float16, enabled=self._use_amp)
 
     def _to_text(self, ids: list[int]) -> str:
-        if self.eos_tgt in ids:  # drop anything generated after the first <eos>
+        if self.eos_tgt in ids:
             ids = ids[: ids.index(self.eos_tgt)]
         return self.tgt_tok.decode(ids, skip_special_tokens=True)
 
     def _batches(self, sentences: list[str], batch_size: int) -> Iterator[tuple[list[int], torch.Tensor, torch.Tensor]]:
-        """Yield (original_indices, src, src_mask), sorted by length to minimise padding."""
         ids = numericalize_batch(sentences, self.src_tok, self.max_len)
         order = sorted(range(len(ids)), key=lambda i: len(ids[i]))
         for s in range(0, len(order), batch_size):
@@ -77,7 +67,6 @@ class TranslationGenerator:
     @staticmethod
     def _progress(batches, n_sentences: int, batch_size: int, desc: str):
         n_batches = -(-n_sentences // batch_size)
-        # Hidden for single-batch calls (interactive REPL / widget) to avoid noise
         return tqdm(batches, total=n_batches, desc=desc, leave=False, disable=n_batches <= 1)
 
     def _next_logits(self, tgt: torch.Tensor, enc_out: torch.Tensor, src_mask: torch.Tensor) -> torch.Tensor:
@@ -86,22 +75,25 @@ class TranslationGenerator:
             logits = self.model.decoder(tgt, enc_out, src_mask, tgt_mask, last_only=True)
         return logits[:, -1, :].float()
 
-    # ---- decoding ----
     @torch.inference_mode()
-    def greedy_decode(self, sentence: str) -> str:
-        return self.batched_greedy_decode([sentence], batch_size=1)[0]
+    def greedy_decode(self, sentence: str, tgt_prefix_token: str | None = None) -> str:
+        return self.batched_greedy_decode([sentence], batch_size=1, tgt_prefix_token=tgt_prefix_token)[0]
 
     @torch.inference_mode()
-    def batched_greedy_decode(self, sentences: list[str], batch_size: int = 128) -> list[str]:
+    def batched_greedy_decode(self, sentences: list[str], batch_size: int = 128, tgt_prefix_token: str | None = None) -> list[str]:
         results = [""] * len(sentences)
-                # in batched_greedy_decode
         for idx, src, src_mask in self._progress(
             self._batches(sentences, batch_size), len(sentences), batch_size, "Greedy decode"
         ):
             with self._autocast():
                 enc_out = self.model.encoder(src, src_mask)
 
-            tgt = torch.full((len(idx), 1), self.sos_tgt, dtype=torch.long, device=self.device)
+            if tgt_prefix_token:
+                prefix_id = self.tgt_tok.token_to_id(tgt_prefix_token)
+                tgt = torch.tensor([[self.sos_tgt, prefix_id]], dtype=torch.long, device=self.device).repeat(len(idx), 1)
+            else:
+                tgt = torch.full((len(idx), 1), self.sos_tgt, dtype=torch.long, device=self.device)
+
             unfinished = torch.ones(len(idx), dtype=torch.bool, device=self.device)
             for _ in range(self.max_len - 1):
                 next_tokens = self._next_logits(tgt, enc_out, src_mask).argmax(dim=-1)
@@ -124,18 +116,13 @@ class TranslationGenerator:
         batch_size: int = 128,
         length_penalty: float = 1.0,
         no_repeat_ngram_size: int | None = None,
+        tgt_prefix_token: str | None = None,
     ) -> list[str]:
-        """Fully vectorised beam search. Final hypothesis = argmax(score / length**length_penalty).
-
-        `no_repeat_ngram_size` (default: the generator's setting) forbids any n-gram of that size from
-        appearing twice in a hypothesis, which prevents repetition loops.
-        """
         vocab_size = self.tgt_tok.get_vocab_size()
         n_block = self.no_repeat_ngram_size if no_repeat_ngram_size is None else no_repeat_ngram_size
         k = beam_size
         results = [""] * len(sentences)
 
-        # in batched_beam_decode
         for idx, src, src_mask in self._progress(
             self._batches(sentences, batch_size), len(sentences), batch_size, f"Beam decode (k={k})"
         ):
@@ -144,21 +131,24 @@ class TranslationGenerator:
                 enc_out = self.model.encoder(src, src_mask)
             enc_out = enc_out.repeat_interleave(k, dim=0)
             src_mask = src_mask.repeat_interleave(k, dim=0)
-            tgt = torch.full((b * k, 1), self.sos_tgt, dtype=torch.long, device=self.device)
+            
+            if tgt_prefix_token:
+                prefix_id = self.tgt_tok.token_to_id(tgt_prefix_token)
+                tgt = torch.tensor([[self.sos_tgt, prefix_id]], dtype=torch.long, device=self.device).repeat(b * k, 1)
+            else:
+                tgt = torch.full((b * k, 1), self.sos_tgt, dtype=torch.long, device=self.device)
 
             scores = torch.full((b, k), float("-inf"), device=self.device)
-            scores[:, 0] = 0.0  # only one live beam at step 0
+            scores[:, 0] = 0.0  
             finished = torch.zeros((b, k), dtype=torch.bool, device=self.device)
             row_offset = (torch.arange(b, device=self.device) * k).unsqueeze(1)
 
             for _ in range(self.max_len - 1):
                 log_probs = F.log_softmax(self._next_logits(tgt, enc_out, src_mask), dim=-1).view(b, k, vocab_size)
-                # Block repeated n-grams on live beams (finished beams only emit <eos>, so skip them).
                 banned = _banned_ngram_mask(tgt, n_block, vocab_size)
                 if banned is not None:
                     banned = banned.view(b, k, vocab_size) & ~finished.unsqueeze(-1)
                     log_probs = log_probs.masked_fill(banned, float("-inf"))
-                # Finished beams may only be extended with <eos> at zero cost.
                 log_probs = log_probs.masked_fill(finished.unsqueeze(-1), float("-inf"))
                 eos_lp = log_probs[..., self.eos_tgt]
                 log_probs[..., self.eos_tgt] = torch.where(finished, torch.zeros_like(eos_lp), eos_lp)

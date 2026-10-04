@@ -91,7 +91,6 @@ def multilingual_worker(rank: int, world_size: int, config_path: str) -> None:
 
     shared_tok_path = cfg.data.tokenizer_dir / f"multilingual_shared_{cfg.tokenizer.max_vocab_size}.json"
 
-    # Rank 0 creates and caches the dataset; other ranks wait
     if is_main:
         cfg.data.data_dir.mkdir(parents=True, exist_ok=True)
         corpus = pipeline.acquire_multilingual_corpus(
@@ -110,9 +109,8 @@ def multilingual_worker(rank: int, world_size: int, config_path: str) -> None:
         cfg.data.tokenizer_dir.mkdir(parents=True, exist_ok=True)
         MultilingualTokenizerManager.save(shared_tok, shared_tok_path)
         
-    barrier()  # Wait for Rank 0 to finish processing and writing to disk
+    barrier()
 
-    # Other ranks instantly hit the cached processed corpus
     if not is_main:
         corpus = pipeline.acquire_multilingual_corpus(
             pairs_per_lang=raw_cfg["multilingual"]["pairs_per_lang"],
@@ -140,12 +138,11 @@ def multilingual_worker(rank: int, world_size: int, config_path: str) -> None:
 
     trainer = Trainer(model, cfg, tr_loader, val_loader, shared_tok, shared_tok, rank=rank, world_size=world_size)
     train_time, peak_mem, peak_res = trainer.fit()
-    barrier()   # rank 0 has finished writing checkpoints before anyone restores
+    barrier()
     trainer.restore()
     trainer.release()
     free_memory()
 
-    # Multi-GPU Beam Evaluation across all pairs
     generator = TranslationGenerator(
         model, shared_tok, shared_tok, cfg.data.max_len, torch.device("cuda", torch.cuda.current_device()),
         no_repeat_ngram_size=cfg.inference.no_repeat_ngram_size,
@@ -161,10 +158,11 @@ def multilingual_worker(rank: int, world_size: int, config_path: str) -> None:
     for pair_key in eval_directions:
         split = corpus["eval_splits"].get(pair_key)
         if split:
+            tgt_prefix = split.get("tgt_prefix")
             bleu, chrf, _ = evaluator.evaluate(
                 split["test_src"], split["test_tgt"], method="beam", beam_size=5,
                 batch_size=cfg.training.gen_batch_size, sample_size=cfg.training.bleu_sample,
-                rank=rank, world_size=world_size,
+                rank=rank, world_size=world_size, tgt_prefix_token=tgt_prefix
             )
             results[pair_key] = (bleu, chrf)
 
@@ -175,7 +173,6 @@ def multilingual_worker(rank: int, world_size: int, config_path: str) -> None:
 
 
 def _launch_multilingual(rank: int, world_size: int) -> None:
-    """Top-level wrapper so multiprocessing can pickle the function."""
     script_dir = Path(__file__).resolve().parent
     config_path = script_dir.parent / "configs" / "multilingual_config.toml"
     multilingual_worker(rank, world_size, str(config_path))

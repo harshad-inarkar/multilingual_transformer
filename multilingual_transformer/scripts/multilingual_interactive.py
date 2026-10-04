@@ -22,7 +22,6 @@ def main() -> None:
         warnings.simplefilter("ignore")
         cfg = AppConfig.from_toml(config_path)
 
-    # Calculate active languages dynamically from the configuration
     train_pairs = raw_cfg["multilingual"]["train_languages_pairs"]
     token_fmt = raw_cfg["multilingual"]["target_tokens_format"]
     valid_langs = set()
@@ -61,10 +60,8 @@ def main() -> None:
     print("Type 'q' to quit.")
     print("=" * 60 + "\n")
 
-
     while True:
         try:
-            # Fixed: Removed the leading '\n' that breaks Colab's input box rendering
             raw_input = input("Enter: ").strip()
             
             if not raw_input:
@@ -85,8 +82,8 @@ def main() -> None:
             if not text:
                 continue
 
-            prefixed_text = f"{token_fmt.format(tgt_lang)} {text}"
-            beam_out = generator.batched_beam_decode([prefixed_text], beam_size=5)[0]
+            tgt_prefix = token_fmt.format(tgt_lang)
+            beam_out = generator.batched_beam_decode([text], beam_size=5, tgt_prefix_token=tgt_prefix)[0]
             print(f"[{tgt_lang.upper()} Beam]: {beam_out}\n")
             
         except (KeyboardInterrupt, EOFError):

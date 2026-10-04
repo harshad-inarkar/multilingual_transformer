@@ -10,7 +10,6 @@ from tqdm.auto import tqdm
 from multilingual_transformer.data.sampler import BucketBatchSampler
 import os
 
-# Safely reuse original components
 from multilingual_transformer.data.dataset import (
     PadCollator,
     TranslationDataset,
@@ -49,7 +48,6 @@ class MultilingualDataPipeline:
         import pickle
         self.data_dir.mkdir(parents=True, exist_ok=True)
         
-        # Create a unique cache name based on requested sizes and languages
         lang_hash = "_".join(sorted(self.dataset_map.keys()))
         cache_name = (f"multi_corpus_{lang_hash}_{pairs_per_lang}_{val_per_lang}_{test_per_lang}"
               f"_s{self.seed}_l{self.max_len}_r{self.max_ratio}.pkl")
@@ -93,7 +91,6 @@ class MultilingualDataPipeline:
                     if len(cur_en) >= total_needed:
                         break
 
-            # Restore original proportional slicing logic
             total_requested = pairs_per_lang + val_per_lang + test_per_lang
             actual_total = len(cur_en)
             
@@ -108,33 +105,37 @@ class MultilingualDataPipeline:
 
             per_lang[tgt_lang] = (tr_e, tr_t, va_e, va_t, te_e, te_t)
 
-    
-        eval_en = {s.lower() for v in per_lang.values() for s in v[2] + v[4]}   # English in ANY val/test split
+        eval_en = {s.lower() for v in per_lang.values() for s in v[2] + v[4]}
         n_dropped = 0
         for tgt_lang, (tr_e, tr_t, va_e, va_t, te_e, te_t) in per_lang.items():
             kept = [(e, t) for e, t in zip(tr_e, tr_t) if e.lower() not in eval_en]
             n_dropped += len(tr_e) - len(kept)
             tr_e, tr_t = [e for e, _ in kept], [t for _, t in kept]
 
-            train_src.extend([f"<2{tgt_lang}> {s}" for s in tr_e]); train_tgt.extend(tr_t)
-            train_src.extend([f"<2en> {s}" for s in tr_t]);         train_tgt.extend(tr_e)
+            # Source gets plain text, Target gets the target prefix token
+            train_src.extend(tr_e)
+            train_tgt.extend([f"<2{tgt_lang}> {t}" for t in tr_t])
+            
+            train_src.extend(tr_t)
+            train_tgt.extend([f"<2en> {e}" for e in tr_e])
+            
             eval_splits[f"en-{tgt_lang}"] = {
-                "val_src": [f"<2{tgt_lang}> {s}" for s in va_e], "val_tgt": va_t,
-                "test_src": [f"<2{tgt_lang}> {s}" for s in te_e], "test_tgt": te_t,
+                "val_src": va_e, "val_tgt": [f"<2{tgt_lang}> {t}" for t in va_t],
+                "test_src": te_e, "test_tgt": [f"<2{tgt_lang}> {t}" for t in te_t],
+                "tgt_prefix": f"<2{tgt_lang}>"
             }
             eval_splits[f"{tgt_lang}-en"] = {
-                "val_src": [f"<2en> {s}" for s in va_t], "val_tgt": va_e,
-                "test_src": [f"<2en> {s}" for s in te_t], "test_tgt": te_e,
+                "val_src": va_t, "val_tgt": [f"<2en> {e}" for e in va_e],
+                "test_src": te_t, "test_tgt": [f"<2en> {e}" for e in te_e],
+                "tgt_prefix": "<2en>"
             }
-        print(f"Removed {n_dropped:,} training pairs whose English text appears in a val/test split.")
+        if verbose:
+            print(f"Removed {n_dropped:,} training pairs whose English text appears in a val/test split.")
 
-
-        # Global val set combining all directions for Trainer
         combined_val_src, combined_val_tgt = [], []
         for pair_data in eval_splits.values():
             combined_val_src.extend(pair_data["val_src"])
             combined_val_tgt.extend(pair_data["val_tgt"])
-        
 
         out_dict = {
             "train_src": train_src,
@@ -145,14 +146,11 @@ class MultilingualDataPipeline:
         }
         
         tmp = cache_path.with_suffix(".tmp")
-
         with open(tmp, "wb") as f:
             pickle.dump(out_dict, f)
-
         os.replace(tmp, cache_path)
 
         return out_dict
-
 
     @staticmethod
     def create_loader(
@@ -167,7 +165,6 @@ class MultilingualDataPipeline:
         sampler = BucketBatchSampler(
             lengths, batch_size, shuffle=shuffle, seed=seed, rank=rank, world_size=world_size
         )
-
         return DataLoader(
             dataset,
             batch_sampler=sampler,

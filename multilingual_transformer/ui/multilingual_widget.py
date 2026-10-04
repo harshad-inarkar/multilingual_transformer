@@ -38,29 +38,25 @@ class MultilingualTranslationWidget:
                     print("Source and Target languages must be different.")
                     return
                 
-                # If translating TO English, we use <2en>. Otherwise, use the target tag.
-                target_code = tgt_dropdown.value.lower()
-                tgt_prefix = self.token_fmt.format(target_code)
-                prefixed_text = f"{tgt_prefix} {text_box.value}"
+                tgt_lang = tgt_dropdown.value.lower()
+                tgt_prefix = self.token_fmt.format(tgt_lang)
+                text = text_box.value
                 
                 if method_dropdown.value == "greedy":
-                    res = self.generator.greedy_decode(prefixed_text)
+                    res = self.generator.greedy_decode(text, tgt_prefix_token=tgt_prefix)
                 else:
-                    res = self.generator.batched_beam_decode([prefixed_text], beam_size=5)[0]
+                    res = self.generator.batched_beam_decode([text], beam_size=5, tgt_prefix_token=tgt_prefix)[0]
                     
-                print(f"[{src_dropdown.value.upper()}] : {text_box.value}")
+                print(f"[{src_dropdown.value.upper()}] : {text}")
                 print(f"[{tgt_dropdown.value.upper()}] : {res}")
 
         translate_btn.on_click(on_click)
         
-        # Organize layout horizontally for language selectors
         lang_selectors = widgets.HBox([src_dropdown, tgt_dropdown])
         return widgets.VBox([lang_selectors, text_box, method_dropdown, translate_btn, out])
 
 def launch(config_path: str | None = None) -> widgets.VBox | None:
-    """Loads trained checkpoint and renders the interactive widget in Colab/Jupyter."""
     if config_path is None:
-        # ui/ -> parent is the package root
         config_path = str(Path(__file__).resolve().parent.parent / "configs" / "multilingual_config.toml")
 
     with open(config_path, "rb") as f:
@@ -70,7 +66,6 @@ def launch(config_path: str | None = None) -> widgets.VBox | None:
         warnings.simplefilter("ignore")
         cfg = AppConfig.from_toml(config_path)
 
-    # Dynamically extract supported languages
     train_pairs = raw_cfg["multilingual"]["train_languages_pairs"]
     token_fmt = raw_cfg["multilingual"]["target_tokens_format"]
     valid_langs = set()

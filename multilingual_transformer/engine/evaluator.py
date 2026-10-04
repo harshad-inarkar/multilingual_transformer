@@ -39,20 +39,23 @@ class TranslationEvaluator:
         sample_size: int = 500,
         rank: int = 0,
         world_size: int = 1,
+        tgt_prefix_token: str | None = None,
     ) -> tuple[float, float, list[dict[str, str]]]:
         n = min(sample_size, len(sources))
         src_subset, ref_subset = sources[:n], references[:n]
 
-        # Shard the evaluation dataset across ranks
         shard_src = [src_subset[i] for i in range(rank, len(src_subset), world_size)]
         shard_indices = list(range(rank, len(src_subset), world_size))
 
         if method == "beam":
-            shard_preds = self.generator.batched_beam_decode(shard_src, beam_size=beam_size, batch_size=batch_size)
+            shard_preds = self.generator.batched_beam_decode(
+                shard_src, beam_size=beam_size, batch_size=batch_size, tgt_prefix_token=tgt_prefix_token
+            )
         else:
-            shard_preds = self.generator.batched_greedy_decode(shard_src, batch_size=batch_size)
+            shard_preds = self.generator.batched_greedy_decode(
+                shard_src, batch_size=batch_size, tgt_prefix_token=tgt_prefix_token
+            )
 
-        # Interleave gathered predictions back into original order on all ranks
         gathered_data = gather_all(list(zip(shard_indices, shard_preds)), world_size)
         
         all_preds_dict: dict[int, str] = {}
