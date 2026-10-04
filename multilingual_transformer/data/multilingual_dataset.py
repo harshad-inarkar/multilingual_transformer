@@ -151,6 +151,8 @@ class MultilingualDataPipeline:
 
         os.replace(tmp, cache_path)
 
+        return out_dict
+
 
     @staticmethod
     def create_loader(

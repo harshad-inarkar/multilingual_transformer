@@ -1,6 +1,109 @@
 
 
+/kaggle/working/multilingual_transformer/work_dir
 
+==================================================
+          INITIALIZING TRAINING PIPELINE
+==================================================
+Dataset Name : ai4bharat/samanantar
+Language     : Hindi (hi)
+Epochs       : 10
+Train Size   : 100000
+Val Size     : 10000
+Test Size    : 10000
+Save Best    : True
+GPUs Active  : 2
+==================================================
+
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+README.md: 11.4kB [00:00, 4.84MB/s]
+hi/train-00000-of-00008.parquet: 100%|███████| 240M/240M [00:03<00:00, 62.2MB/s]
+hi/train-00001-of-00008.parquet: 100%|███████| 240M/240M [00:02<00:00, 85.0MB/s]
+hi/train-00002-of-00008.parquet: 100%|███████| 240M/240M [00:02<00:00, 85.2MB/s]
+hi/train-00003-of-00008.parquet: 100%|███████| 240M/240M [00:02<00:00, 91.4MB/s]
+hi/train-00004-of-00008.parquet: 100%|███████| 240M/240M [00:02<00:00, 85.1MB/s]
+hi/train-00005-of-00008.parquet: 100%|███████| 239M/239M [00:02<00:00, 85.0MB/s]
+hi/train-00006-of-00008.parquet: 100%|███████| 239M/239M [00:02<00:00, 84.8MB/s]
+hi/train-00007-of-00008.parquet: 100%|███████| 240M/240M [00:03<00:00, 70.0MB/s]
+Generating train split: 100%|█| 10125706/10125706 [00:20<00:00, 505601.16 exampl
+Filtering 120,000 random clean pairs from the Arrow-backed dataset ai4bharat/samanantar...
+Extracting Pairs: 100%|███████████████| 120000/120000 [00:12<00:00, 9993.10it/s]
+Training tokenizers...
+[00:00:00] Tokenize words                 ██████████████████ 59879    /    59879[00:00:00] Tokenize words                 ██████████████████ 0        /        0
+[00:00:00] Count pairs                    ██████████████████ 59879    /    59879
+[00:00:00] Compute merges                 ██████████████████ 15893    /    15893
+[00:00:00] Suffix array seeds             ██████████████████ 91913    /    91913[00:00:00] Suffix array seeds             ██████████████████ 0        /        0
+[00:00:11] EM training                    ██████████████████ 14       /       14
+Loading cached dataset splits from processed_data...
+Epoch  1/10 | Time: 0m 23s | Train Loss: 7.6190 | Val Loss: 5.8860              
+Epoch  2/10 | Time: 0m 22s | Train Loss: 5.6788 | Val Loss: 4.8414              
+Epoch  3/10 | Time: 0m 23s | Train Loss: 5.0330 | Val Loss: 4.4172              
+Epoch  4/10 | Time: 0m 23s | Train Loss: 4.6643 | Val Loss: 4.1704              
+Epoch  5/10 | Time: 0m 24s | Train Loss: 4.4066 | Val Loss: 4.0156              
+Epoch  6/10 | Time: 0m 24s | Train Loss: 4.2105 | Val Loss: 3.9212              
+Epoch  7/10 | Time: 0m 24s | Train Loss: 4.0682 | Val Loss: 3.8777              
+Epoch  8/10 | Time: 0m 24s | Train Loss: 3.9702 | Val Loss: 3.8529              
+Epoch  9/10 | Time: 0m 24s | Train Loss: 3.9062 | Val Loss: 3.8465              
+Epoch 10/10 | Time: 0m 24s | Train Loss: 3.8842 | Val Loss: 3.8453              
+
+======================================================================
+                    SAVED CHECKPOINTS
+======================================================================
+Best (lowest val)  : epoch 10/10 | Train 3.8842 | Val 3.8453 | checkpoints/transformer_en_hi_best.pt
+Final (last epoch) : epoch 10/10 | Train 3.8842 | Val 3.8453 | checkpoints/transformer_en_hi_last.pt
+======================================================================
+                                                                                
+======================================================================
+              CONSOLIDATED FINAL STATISTICS
+======================================================================
+Target Language   : Hindi (hi)
+Dataset Source    : ai4bharat/samanantar
+Tokenizers Used   : SRC = WORDPIECE | TGT = UNIGRAM
+Vocab Sizes       : SRC = 16,000 | TGT = 16,000
+Model Parameters  : 20,176,896 (77.0 MB fp32)
+Transformer Arch  : d_model 256 / num_layers 4/ d_ff 768
+----------------------------------------------------------------------
+Epochs            : 10
+Train/Val/Test    : 100,000 / 10,000 / 10,000
+BlEU Samples      : 1000
+Batch Size        : 256 (Train) | 256 (Eval)
+Steps per Epoch   : 196
+Total Train Time  : 4.07 minutes
+Peak GPU          : 8.06 GB
+Peak Reserved GPU : 13.83 GB
+----------------------------------------------------------------------
+Greedy Decoding   -> BLEU:  6.17 | CHRF: 24.42
+Beam Decoding     -> BLEU:  7.74 | CHRF: 26.57
+======================================================================
+
+
+BLEU signature: nrefs:1|case:lc|eff:no|tok:intl|smooth:exp|version:2.6.0
+chrF signature: nrefs:1|case:lc|eff:yes|nc:6|nw:0|space:no|version:2.6.0
+=======================================================
+
+=== Config Sample Translations (EN-HI) ===
+[1] EN   : farmer is important to the country
+    Greedy : किसान देश को जरूरी है
+    Beam   : किसान देश के लिए जरूरी है
+
+[2] EN   : education is essential for every child
+    Greedy : हर बच्चे के लिए शिक्षा के लिए शिक्षा है
+    Beam   : हर बच्चे के लिए शिक्षा आवश्यक है
+
+[3] EN   : they are going to school
+    Greedy : वे स्कूलें
+    Beam   : वे स्कूल जा रहे हैं।
+
+[4] EN   : She is smart girl
+    Greedy : वह लड़की हैं
+    Beam   : वह लड़की हैं
+
+[5] EN   : he is a great teacher
+    Greedy : वह एक महान शिक्षक हैं
+    Beam   : वह एक बड़ी युवा है
+
+
+---
 /kaggle/working/multilingual_transformer/work_dir
 
 ==================================================
