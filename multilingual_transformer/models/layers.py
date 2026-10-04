@@ -65,6 +65,8 @@ class FeedForward(nn.Module):
             
         elif self.activation_type == "gelu":
             return self.fc2(F.gelu(self.fc1(x)))
+        else:
+            raise ValueError(f"Unknown activation type: {self.activation_type}")
 
 
 class EncoderLayer(nn.Module):

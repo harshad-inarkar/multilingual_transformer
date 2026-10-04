@@ -5,10 +5,8 @@ from dataclasses import dataclass, field, fields
 from pathlib import Path
 from typing import Any, TypeVar
 
-try:
-    import tomllib  # Python >= 3.11
-except ModuleNotFoundError:  # pragma: no cover
-    import tomli as tomllib
+import tomllib
+
 
 T = TypeVar("T")
 

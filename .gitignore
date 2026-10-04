@@ -10,6 +10,11 @@
 .Spotlight-V100
 .Trashes
 
+__pycache__
+.mypy_cache
+*.egg-info
+
+
 # Windows
 Thumbs.db
 Thumbs.db:encryptable

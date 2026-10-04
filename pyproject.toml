@@ -25,3 +25,28 @@ include = ["multilingual_transformer*"]
 
 [tool.setuptools.package-data]
 multilingual_transformer = ["configs/*.toml"]
+
+[tool.pylint.messages_control]
+disable = ["all"]
+enable = [
+    "syntax-error",
+    "unexpected-keyword-arg",
+    "no-value-for-parameter",
+    "too-many-function-args",
+    "undefined-variable"
+]
+
+
+[tool.mypy]
+ignore_missing_imports = true
+follow_imports = "silent"
+show_error_codes = true
+explicit_package_bases = true
+disable_error_code = [
+    "import-untyped",
+    "annotation-unchecked",
+    "return-value",
+    "index",
+    "assignment",
+    "union-attr",
+]

@@ -37,6 +37,7 @@ class MultilingualTokenizerManager(TokenizerManager):
                     vocab[token] = len(vocab)
             return BasicVocabTokenizer(vocab, split_type=algo)
 
+        trainer: Any
         if algo == "bpe":
             tok = Tokenizer(models.BPE(unk_token="<unk>"))
             tok.pre_tokenizer = pre_tokenizers.Sequence([pre_tokenizers.Metaspace(), pre_tokenizers.Punctuation()])

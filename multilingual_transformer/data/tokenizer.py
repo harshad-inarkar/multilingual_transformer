@@ -59,7 +59,7 @@ class TokenizerManager:
         algo = algo.lower()
         # Lowercase lazily so train-time and encode-time text match (numericalize lowercases).
         corpus = (s.lower() for s in sentences)
-
+        
         if algo in ("whitespace", "regex"):
             counter: Counter[str] = Counter()
             for text in corpus:
@@ -69,7 +69,8 @@ class TokenizerManager:
                 if token not in vocab:
                     vocab[token] = len(vocab)
             return BasicVocabTokenizer(vocab, split_type=algo)
-
+        
+        trainer: Any
         if algo == "bpe":
             tok = Tokenizer(models.BPE(unk_token="<unk>"))
             tok.pre_tokenizer = pre_tokenizers.Sequence(

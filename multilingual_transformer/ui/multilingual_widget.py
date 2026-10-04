@@ -89,11 +89,12 @@ def launch(config_path: str | None = None) -> widgets.VBox | None:
 
     train_pairs = raw_cfg["multilingual"]["train_languages_pairs"]
     token_fmt = raw_cfg["multilingual"]["target_tokens_format"]
-    valid_langs = set()
+    
+    langs_set = set()
     for pair in train_pairs:
-        valid_langs.update(pair.split("-"))
-    valid_langs = sorted(list(valid_langs))
-
+        langs_set.update(pair.split("-"))
+    valid_langs: list[str] = sorted(langs_set)
+    
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     tok_path = cfg.data.tokenizer_dir / f"multilingual_shared_{cfg.tokenizer.max_vocab_size}.json"
     ckpt_path = cfg.checkpoint_path("best" if cfg.training.save_best else "last")
