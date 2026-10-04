@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Any
 
 import torch
-from datasets import load_dataset
 from torch import Tensor
 from torch.utils.data import DataLoader, Dataset
 from tqdm.auto import tqdm
@@ -104,6 +103,8 @@ class DataPipeline:
         return {name: self.data_dir / f"{name}_{tag}_{n}.jsonl" for name, n in sizes.items()}
 
     def _open_dataset(self) -> Any:
+        from datasets import load_dataset
+        
         args: tuple[str, ...] = (self.dataset_name,)
         if self.dataset_name not in ("cfilt/iitb-english-hindi", "acomquest/Saamayik"):
             args = (self.dataset_name, self.tgt_lang)
@@ -137,7 +138,7 @@ class DataPipeline:
         if not force_download and all(p.exists() for p in paths.values()):
             if verbose:
                 print(f"Loading cached dataset splits from {self.data_dir}...")
-                
+
             out: list[list[str]] = []
             for p in paths.values():
                 out.extend(self._load_jsonl(p))

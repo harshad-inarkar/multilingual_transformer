@@ -6,7 +6,6 @@ import pickle
 import os
 
 import torch
-from datasets import load_dataset
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
 from multilingual_transformer.data.sampler import BucketBatchSampler
@@ -46,6 +45,9 @@ class MultilingualDataPipeline:
         force_download: bool = False, 
         verbose: bool = True, 
     ) -> dict[str, Any]:
+
+        from datasets import load_dataset
+        
         self.data_dir.mkdir(parents=True, exist_ok=True)
         
         lang_hash = "_".join(sorted(self.dataset_map.keys()))
